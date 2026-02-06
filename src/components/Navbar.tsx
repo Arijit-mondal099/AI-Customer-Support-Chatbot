@@ -65,9 +65,9 @@ export const Navbar = ({ email }: { email: string | null }) => {
                   transition={{ type: "spring", bounce: 0.5, duration: 0.5 }}
                   className="absolute -bottom-24 right-0 z-50 w-44 bg-gray-50 rounded-lg border border-gray-200 shadow flex flex-col overflow-hidden"
                 >
-                  <button className="text-left text-sm font-medium cursor-pointer p-3">
+                  <Link href={"/dashboard"} className="text-left text-sm font-medium cursor-pointer p-3">
                     Dashboard
-                  </button>
+                  </Link>
 
                   <button 
                     className="text-left text-sm font-medium text-red-500 cursor-pointer p-3 border-t border-gray-200 flex items-center gap-2"
