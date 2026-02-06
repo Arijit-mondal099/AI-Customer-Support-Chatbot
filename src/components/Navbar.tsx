@@ -29,12 +29,12 @@ export const Navbar = ({ email }: { email: string | null }) => {
       initial={{ y: -50 }}
       animate={{ y: 0 }}
       transition={{ type: "spring", bounce: 0.4, duration: 0.5 }}
-      className="fixed z-50 top-0 left-0 w-full bg-white/70 backdrop-blur-lg border-b border-zinc-200"
+      className="fixed z-50 top-0 left-0 w-full bg-white/40 backdrop-blur-sm border-b border-zinc-200"
     >
       <nav className="max-w-7xl mx-auto px-2 py-4 flex items-center justify-between gap-4">
         <Link href="/">
           <h1 className="bg-linear-to-r from-zinc-950 to-zinc-500 text-2xl font-bold lg:font-extrabold bg-clip-text text-transparent">
-            Support.<span className="text-zinc-400">AI</span>
+            Support<span className="text-zinc-400">AI</span>
           </h1>
         </Link>
 

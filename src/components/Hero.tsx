@@ -5,7 +5,7 @@ import { motion } from "motion/react";
 
 export const Hero = ({ email }: { email: string | null }) => {
   return (
-    <section className="max-w-7xl mx-auto mt-32 pb-20 px-2 grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+    <section className="max-w-7xl mx-auto mt-36 mb-44 px-2 grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
       <motion.div
         initial={{ x: -50, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
@@ -40,14 +40,15 @@ export const Hero = ({ email }: { email: string | null }) => {
             </motion.button>
           )}
 
-          <motion.button
+          <motion.a
+            href="#features"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.9 }}
             className="mt-8 text-zinc-900 bg-gray-100 font-medium text-sm px-6 py-3 rounded-lg cursor-pointer hover:bg-gray-200 transition border border-gray-200 shadow flex items-center gap-2"
           >
             <span>Learn more</span>
             <ChevronRight className="w-4 h-4" />
-          </motion.button>
+          </motion.a>
         </div>
       </motion.div>
 
