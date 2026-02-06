@@ -1,6 +1,7 @@
 import { Navbar } from "@/components/Navbar";
 import { Hero } from "@/components/Hero";
 import { Feature } from "@/components/Feature";
+import { Footer } from "@/components/Footer";
 import { getUserSession } from "@/lib/getUserSession";
 
 const HomePage = async () => {
@@ -11,6 +12,7 @@ const HomePage = async () => {
       <Navbar email={session?.user?.email ? session?.user?.email : null} />
       <Hero email={session?.user?.email ? session?.user?.email : null} />
       <Feature />
+      <Footer />
     </div>
   );
 };
