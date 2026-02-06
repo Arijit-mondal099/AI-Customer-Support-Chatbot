@@ -2,10 +2,20 @@
 
 import { Bot, ChevronRight, Send } from "lucide-react";
 import { motion } from "motion/react";
+import { useRouter } from "next/navigation";
 
 export const Hero = ({ email }: { email: string | null }) => {
+  const router = useRouter();
+
+  const handleLogin = (): void => {
+    window.location.href = "/api/auth/login";
+  };
+
   return (
-    <section className="max-w-7xl mx-auto mt-36 mb-44 px-2 grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+    <section
+      id="home"
+      className="max-w-7xl mx-auto mt-36 mb-44 px-2 grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6"
+    >
       <motion.div
         initial={{ x: -50, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
@@ -27,6 +37,7 @@ export const Hero = ({ email }: { email: string | null }) => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.9 }}
               className="mt-8 bg-zinc-900 text-white font-medium text-sm px-6 py-3 rounded-lg cursor-pointer hover:bg-zinc-800 transition shadow"
+              onClick={() => router.push("/dashboard")}
             >
               Go to Dashboard
             </motion.button>
@@ -35,6 +46,7 @@ export const Hero = ({ email }: { email: string | null }) => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.9 }}
               className="mt-8 bg-zinc-900 text-white font-medium text-sm px-6 py-3 rounded-lg cursor-pointer hover:bg-zinc-800 transition shadow"
+              onClick={handleLogin}
             >
               Get Started
             </motion.button>
@@ -47,7 +59,12 @@ export const Hero = ({ email }: { email: string | null }) => {
             className="mt-8 text-zinc-900 bg-gray-100 font-medium text-sm px-6 py-3 rounded-lg cursor-pointer hover:bg-gray-200 transition border border-gray-200 shadow flex items-center gap-2"
           >
             <span>Learn more</span>
-            <ChevronRight className="w-4 h-4" />
+            <motion.div
+              animate={{ x: [0, 10, 0] }}
+              transition={{ repeat: Infinity, duration: 1 }}
+            >
+              <ChevronRight className="w-5 h-5" />
+            </motion.div>
           </motion.a>
         </div>
       </motion.div>
@@ -61,7 +78,7 @@ export const Hero = ({ email }: { email: string | null }) => {
         <div className="flex flex-col gap-3 bg-linear-to-b from-zinc-50 to-zinc-100 border border-zinc-200 rounded-xl p-4 space-y-4 max-w-lg w-full shadow-2xl">
           <div className="flex gap-3">
             <div className="w-8 h-8 bg-zinc-900 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0">
-              AI
+              <Bot className="h-4 w-4" />
             </div>
             <div className="bg-white rounded-lg p-3 max-w-xs border border-gray-200">
               <p className="text-sm text-zinc-700">
@@ -81,7 +98,7 @@ export const Hero = ({ email }: { email: string | null }) => {
 
           <div className="flex gap-3">
             <div className="w-8 h-8 bg-zinc-900 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0">
-              AI
+              <Bot className="h-4 w-4" />
             </div>
             <div className="bg-white rounded-lg p-3 max-w-xs border border-gray-200">
               <p className="text-sm text-zinc-700">
