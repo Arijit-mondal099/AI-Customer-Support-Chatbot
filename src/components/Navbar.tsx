@@ -13,6 +13,10 @@ export const Navbar = ({ email }: { email: string | null }) => {
     window.location.href = "/api/auth/login";
   };
 
+  const handleLogout = (): void => {
+    window.location.href = "/api/auth/logout";
+  };
+
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (popupRef.current && !popupRef.current.contains(e.target as Node))
@@ -64,7 +68,11 @@ export const Navbar = ({ email }: { email: string | null }) => {
                   <button className="text-left text-sm font-medium cursor-pointer p-3">
                     Dashboard
                   </button>
-                  <button className="text-left text-sm font-medium text-red-500 cursor-pointer p-3 border-t border-gray-200 flex items-center gap-2">
+
+                  <button 
+                    className="text-left text-sm font-medium text-red-500 cursor-pointer p-3 border-t border-gray-200 flex items-center gap-2"
+                    onClick={handleLogout}
+                  >
                     <span>Logout</span>
                     <LogOut className="w-4 h-4" />
                   </button>
