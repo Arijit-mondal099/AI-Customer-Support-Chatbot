@@ -1,5 +1,6 @@
 "use client";
 
+import { LogOut } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -32,8 +33,8 @@ export const Navbar = ({ email }: { email: string | null }) => {
     >
       <nav className="max-w-7xl mx-auto px-2 py-4 flex items-center justify-between gap-4">
         <Link href="/">
-          <h1 className="bg-linear-to-r from-zinc-950 to-zinc-600 text-2xl font-bold lg:font-extrabold bg-clip-text text-transparent">
-            Support<span className="text-orange-500">.ai</span>
+          <h1 className="bg-linear-to-r from-zinc-950 to-zinc-500 text-2xl font-bold lg:font-extrabold bg-clip-text text-transparent">
+            Support.<span className="text-zinc-400">AI</span>
           </h1>
         </Link>
 
@@ -58,13 +59,14 @@ export const Navbar = ({ email }: { email: string | null }) => {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
                   transition={{ type: "spring", bounce: 0.5, duration: 0.5 }}
-                  className="absolute -bottom-20 right-0 z-50 w-44 bg-gray-50 rounded-lg border border-gray-200 shadow flex flex-col overflow-hidden"
+                  className="absolute -bottom-24 right-0 z-50 w-44 bg-gray-50 rounded-lg border border-gray-200 shadow flex flex-col overflow-hidden"
                 >
-                  <button className="text-left text-sm font-medium cursor-pointer p-2">
+                  <button className="text-left text-sm font-medium cursor-pointer p-3">
                     Dashboard
                   </button>
-                  <button className="text-left text-sm font-medium text-red-500 cursor-pointer p-2 border-t border-gray-200">
-                    Logout
+                  <button className="text-left text-sm font-medium text-red-500 cursor-pointer p-3 border-t border-gray-200 flex items-center gap-2">
+                    <span>Logout</span>
+                    <LogOut className="w-4 h-4" />
                   </button>
                 </motion.div>
               )}
