@@ -14,7 +14,8 @@ export const Navbar = ({ email }: { email: string | null }) => {
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (popupRef.current && !popupRef.current.contains(e.target as Node)) setIsOpen(false);
+      if (popupRef.current && !popupRef.current.contains(e.target as Node))
+        setIsOpen(false);
     };
 
     document.addEventListener("mousedown", handler);
@@ -43,6 +44,7 @@ export const Navbar = ({ email }: { email: string | null }) => {
               whileTap={{ scale: 0.95 }}
               className="h-8 w-8 rounded-full bg-zinc-900 flex items-center justify-center cursor-pointer"
               onClick={() => setIsOpen(!isOpen)}
+              ref={popupRef}
             >
               <p className="text-white text-sm font-semibold uppercase">
                 {email?.at(0)}
@@ -52,7 +54,6 @@ export const Navbar = ({ email }: { email: string | null }) => {
             <AnimatePresence>
               {isOpen && (
                 <motion.div
-                  ref={popupRef}
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
