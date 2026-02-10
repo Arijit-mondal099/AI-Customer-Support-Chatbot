@@ -1,16 +1,17 @@
 import { db_connection } from "@/lib/db";
 import { BusinessModel } from "@/models/business.model";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 /**
  * Create a new business or update an existing one based on the ownerId. If a business with the given ownerId already exists, it will be updated with the new details. If not, a new business will be created.
  */
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const { businessName, ownerId, supportEmail, apiKey } = (await request.json()) as {
+    const { businessName, ownerId, supportEmail, apiKey, knowledge } = (await request.json()) as {
       ownerId: string;
       businessName: string;
       supportEmail: string;
+      knowledge: string;
       apiKey: string;
     };
 
@@ -25,7 +26,7 @@ export async function POST(request: Request) {
 
     const business = await BusinessModel.findOneAndUpdate(
       { ownerId },
-      { businessName, supportEmail, apiKey },
+      { businessName, supportEmail, knowledge, apiKey },
       { new: true, upsert: true },
     );
 
