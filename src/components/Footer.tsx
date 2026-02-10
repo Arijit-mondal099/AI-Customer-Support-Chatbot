@@ -8,7 +8,9 @@ export const Footer = () => {
               Support<span className="text-zinc-400">AI</span>
             </h1>
             <p className="text-gray-400 max-w-lg mt-4">
-              Lorem ipsum dolor sit amet consectetur adipisicing elit. Veritatis soluta fugiat unde. Est modi cumque dicta maxime voluptate ab! Vitae distinctio.
+              Lorem ipsum dolor sit amet consectetur adipisicing elit. Veritatis
+              soluta fugiat unde. Est modi cumque dicta maxime voluptate ab!
+              Vitae distinctio.
             </p>
           </div>
 
@@ -34,7 +36,9 @@ export const Footer = () => {
           </div>
         </div>
         <div className="border-t border-gray-700 pt-4 text-center text-gray-400">
-          <p>&copy; {new Date().getFullYear()} SupportAI. All rights reserved.</p>
+          <p>
+            &copy; {new Date().getFullYear()} SupportAI. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>

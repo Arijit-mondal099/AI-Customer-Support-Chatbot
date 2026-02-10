@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Input } from "./Input";
 import { apiClient } from "@/lib/axios";
+import { motion } from "motion/react";
 
 type Tab = "business" | "persona" | "api";
 
@@ -107,7 +108,12 @@ export const Setting = ({
   }, [ownerId]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen px-4">
+    <motion.div
+      initial={{ y: 50, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ type: "spring", bounce: 0.5, duration: 0.5 }}
+      className="flex items-center justify-center min-h-screen px-4"
+    >
       <div className="w-full max-w-3xl">
         <div className="bg-white rounded-3xl border border-zinc-200 shadow-2xl">
           {/* Header */}
@@ -160,7 +166,10 @@ export const Setting = ({
                     required
                     value={businessInfo.businessName}
                     onChange={(e) =>
-                      setBusinessInfo({ ...businessInfo, businessName: e.target.value })
+                      setBusinessInfo({
+                        ...businessInfo,
+                        businessName: e.target.value,
+                      })
                     }
                   />
 
@@ -315,6 +324,6 @@ export const Setting = ({
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
