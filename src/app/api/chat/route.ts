@@ -1,6 +1,13 @@
+import { db_connection } from "@/lib/db";
 import { BusinessModel } from "@/models/business.model";
 import { GoogleGenAI, ThinkingLevel } from "@google/genai";
 import { NextRequest, NextResponse } from "next/server";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,6 +25,8 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       );
     }
+
+    await db_connection();
 
     const business = await BusinessModel.findOne({ $or: [{ ownerId }] });
 
@@ -51,16 +60,31 @@ export async function POST(request: NextRequest) {
         success: true,
         data: { role: "model", text: res.text! },
       },
-      { status: 200 },
+      {
+        status: 200,
+        headers: corsHeaders,
+      },
     );
   } catch (error) {
+    console.error("Error From AI Gen", error);
+
     return NextResponse.json(
       {
         success: false,
         message: "An error occurred while processing the request.",
         error,
       },
-      { status: 500 },
+      {
+        status: 500,
+        headers: corsHeaders,
+      },
     );
   }
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: corsHeaders,
+  });
 }
