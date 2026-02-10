@@ -1,13 +1,26 @@
 "use client";
 
-import { useState } from "react";
-import { Building2, Bot, KeyRound, Eye, EyeOff, Check, MessageSquare, Save, FileText, Tag, Wand2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  Building2,
+  Bot,
+  KeyRound,
+  Eye,
+  EyeOff,
+  Check,
+  MessageSquare,
+  Save,
+  FileText,
+  Tag,
+  Wand2,
+} from "lucide-react";
 import { Input } from "./Input";
+import { apiClient } from "@/lib/axios";
 
 type Tab = "business" | "persona" | "api";
 
 export interface BusinessInfo {
-  name: string;
+  businessName: string;
   industry: string;
   description: string;
 }
@@ -31,7 +44,7 @@ export const Setting = ({
 
   // Form state
   const [businessInfo, setBusinessInfo] = useState<BusinessInfo>({
-    name: "",
+    businessName: "",
     industry: "",
     description: "",
   });
@@ -42,24 +55,26 @@ export const Setting = ({
   });
   const [apiKey, setApiKey] = useState("");
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
+    setTimeout(() => setSaved(false), 3000);
 
     const payload = {
       ownerId,
-      businessName: businessInfo.name,
       supportEmail,
-      knowledge: `
-        Business Info:\nName: ${businessInfo.name}\n
-        Industry: ${businessInfo.industry}\n
-        Description: ${businessInfo.description}\n\n
-        Persona Info:\nBot Name: ${personaInfo.botName}\n
-        Communication Tone: ${personaInfo.communicationTone}\n
-        Personality Description: ${personaInfo.personalityDescription}
-      `,
       apiKey,
+      businessInfo,
+      botInfo: personaInfo,
     };
+
+    try {
+      const { data } = await apiClient.post("/api/business", payload);
+      if (!data.success) {
+        throw new Error(data.message || "Failed to save business details");
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const tabs = [
@@ -67,6 +82,29 @@ export const Setting = ({
     { id: "persona", label: "Persona", icon: <Bot size={15} /> },
     { id: "api", label: "API Keys", icon: <KeyRound size={15} /> },
   ];
+
+  useEffect(() => {
+    const fetchBusinessDetails = async () => {
+      if (!ownerId) return;
+
+      try {
+        const { data } = await apiClient.get(`/api/business/${ownerId}`);
+
+        if (data.success && data.business) {
+          const { businessInfo, botInfo, apiKey } = data.business;
+          setBusinessInfo(businessInfo);
+          setPersonaInfo(botInfo);
+          setApiKey(apiKey || "");
+        } else {
+          throw new Error(data.message || "Failed to fetch business details");
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchBusinessDetails();
+  }, [ownerId]);
 
   return (
     <div className="flex items-center justify-center min-h-screen px-4">
@@ -119,9 +157,10 @@ export const Setting = ({
                     label="Business Name"
                     icon={<Building2 size={14} />}
                     placeholder="Acme Corporation"
-                    value={businessInfo.name}
+                    required
+                    value={businessInfo.businessName}
                     onChange={(e) =>
-                      setBusinessInfo({ ...businessInfo, name: e.target.value })
+                      setBusinessInfo({ ...businessInfo, businessName: e.target.value })
                     }
                   />
 
@@ -131,6 +170,7 @@ export const Setting = ({
                     icon={<Tag size={14} />}
                     placeholder="E-commerce, SaaS, Support…"
                     value={businessInfo.industry}
+                    required
                     onChange={(e) =>
                       setBusinessInfo({
                         ...businessInfo,
@@ -145,6 +185,7 @@ export const Setting = ({
                   label="Business Description"
                   icon={<FileText size={14} />}
                   placeholder="Describe your business — what you offer, who you serve, and what sets you apart. Your bot will use this to stay on-brand."
+                  required
                   value={businessInfo.description}
                   onChange={(e) =>
                     setBusinessInfo({
@@ -165,6 +206,7 @@ export const Setting = ({
                     label="Bot Name"
                     icon={<Bot size={14} />}
                     placeholder="Aria, Max, Nova…"
+                    required
                     value={personaInfo.botName}
                     onChange={(e) =>
                       setPersonaInfo({
@@ -178,6 +220,7 @@ export const Setting = ({
                     label="Communication Tone"
                     icon={<MessageSquare size={14} />}
                     placeholder="Friendly, professional, concise…"
+                    required
                     value={personaInfo.communicationTone}
                     onChange={(e) =>
                       setPersonaInfo({
@@ -193,6 +236,7 @@ export const Setting = ({
                   label="Personality Description"
                   icon={<Wand2 size={14} />}
                   placeholder="Describe your bot's character, how it should greet users, what topics to avoid, and any specific instructions for handling edge cases…"
+                  required
                   value={personaInfo.personalityDescription}
                   onChange={(e) =>
                     setPersonaInfo({
@@ -212,7 +256,7 @@ export const Setting = ({
                     <div className="flex items-center gap-2.5">
                       <KeyRound size={14} className="text-slate-500" />
                       <span className="text-xs font-bold text-slate-600 tracking-widest uppercase">
-                        Secret Key
+                        API Key*
                       </span>
                     </div>
                   </div>
@@ -223,6 +267,7 @@ export const Setting = ({
                         <input
                           type={showKey ? "text" : "password"}
                           className="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-300 transition-all"
+                          required
                           value={apiKey}
                           placeholder="Gemini Api Key"
                           onChange={(e) => setApiKey(e.target.value)}
@@ -247,11 +292,21 @@ export const Setting = ({
             <div className="flex items-center gap-2.5">
               <button
                 onClick={handleSave}
-                className={`flex items-center gap-1.5 px-5 py-2.5 text-xs font-semibold rounded-xl shadow-sm transition-all duration-300  cursor-pointer ${
+                className={`flex items-center gap-1.5 px-5 py-2.5 text-xs font-semibold rounded-xl shadow-sm transition-all duration-300  cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
                   saved
                     ? "bg-emerald-500 text-white shadow-emerald-200"
                     : "bg-slate-900 text-white hover:bg-slate-800 shadow-slate-200"
                 }`}
+                disabled={
+                  saved ||
+                  !businessInfo.businessName ||
+                  !businessInfo.industry ||
+                  !businessInfo.description ||
+                  !personaInfo.botName ||
+                  !personaInfo.communicationTone ||
+                  !personaInfo.personalityDescription ||
+                  !apiKey
+                }
               >
                 {saved ? <Check size={13} /> : <Save size={13} />}
                 {saved ? "Saved!" : "Save Changes"}
