@@ -3,13 +3,14 @@
 import { LogOut } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 export const Navbar = ({ email }: { email: string | null | undefined }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const popupRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+  const router = useRouter();
 
   const handleLogin = (): void => {
     window.location.href = "/api/auth/login";
@@ -48,10 +49,20 @@ export const Navbar = ({ email }: { email: string | null | undefined }) => {
           pathname === "/dashboard" ? (
             <motion.button
               whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }} 
+              whileTap={{ scale: 0.95 }}
               className="bg-gray-50 text-zinc-900 text-sm font-medium px-4 py-2 rounded-lg border border-gray-200 shadow-sm cursor-pointer"
+              onClick={() => router.push("/dashboard/embed")}
             >
               Embed Chatbot
+            </motion.button>
+          ) : pathname === "/dashboard/embed" ? (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-gray-50 text-zinc-900 text-sm font-medium px-4 py-2 rounded-lg border border-gray-200 shadow-sm cursor-pointer"
+              onClick={() => router.push("/dashboard")}
+            >
+              View Dashboard
             </motion.button>
           ) : (
             <div className="relative">
