@@ -1,36 +1,137 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Customer Support Chatbot
 
-## Getting Started
+An intelligent, context-aware customer support solution built with Next.js 16, Google Gemini AI, and Scalekit. This application empowers businesses to create custom AI chatbots trained on their specific data, capable of handling customer queries with a personalized touch.
 
-First, run the development server:
+## 🚀 Key Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **🤖 AI-Powered Intelligence**: Leverages **Google Generative AI (Gemini)** for natural, accurate, and context-aware responses.
+- **📚 Custom Knowledge Base**: Train the bot on your specific business information for tailored functionality.
+- **🎭 Customizable Personality**: Adjust the bot's communication tone and personality traits to match your brand voice.
+- **🔐 Secure Authentication**: Enterprise-grade authentication powered by **Scalekit**.
+- **💻 Embeddable Widget**: Easily integrate the customer support chat widget into any website.
+- **⚡ Modern & Fast**: Built on the latest **Next.js 16 (App Router)** and **React 19** for optimal performance.
+- **🎨 Beautiful UI**: Styled with **Tailwind CSS v4** and **Motion** for smooth animations and a premium feel.
+
+## 🛠️ Tech Stack
+
+- **Framework**: [Next.js 16](https://nextjs.org/) (App Router)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **UI Library**: [React 19](https://react.dev/)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
+- **Animations**: [Motion](https://motion.dev/)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Database**: [MongoDB](https://www.mongodb.com/) (via Mongoose)
+- **AI / LLM**: [Google Generative AI SDK](https://github.com/google/google-api-nodejs-client)
+- **Authentication**: [Scalekit SDK](https://scalekit.com/)
+- **HTTP Client**: [Axios](https://axios-http.com/)
+
+## 🏁 Getting Started
+
+Follow these steps to set up the project locally.
+
+### Prerequisites
+
+- **Node.js** (v18 or higher recommended)
+- **npm**, **yarn**, **pnpm**, or **bun**
+- **MongoDB** connection string
+- **Google AI Studio** API Key
+- **Scalekit** Environment URL, Client ID, and Secret
+
+### Installation
+
+1.  **Clone the repository:**
+
+    ```bash
+    git clone https://github.com/your-username/ai-customer-support-chatbot.git
+    cd ai-customer-support-chatbot
+    ```
+
+2.  **Install dependencies:**
+
+    ```bash
+    npm install
+    # or
+    yarn install
+    # or
+    pnpm install
+    ```
+
+3.  **Environment Setup:**
+
+    Create a `.env.local` file in the root directory and add the following variables:
+
+    ```env
+    # Application
+    NEXT_PUBLIC_API_URI=http://localhost:3000
+
+    # Authentication (Scalekit)
+    SCALEKIT_ENVIRONMENT_URL=your_scalekit_env_url
+    SCALEKIT_CLIENT_ID=your_scalekit_client_id
+    SCALEKIT_CLIENT_SECRET=your_scalekit_client_secret
+
+    # Database
+    MONGODB_URI=your_mongodb_connection_string
+
+    # AI (Google Gemini)
+    # Ensure your Google AI API key is configured where the SDK expects it, 
+    # or add a specific variable if your implementation uses one (e.g., GOOGLE_API_KEY).
+    ```
+
+4.  **Run the development server:**
+
+    ```bash
+    npm run dev
+    # or
+    yarn dev
+    # or
+    pnpm dev
+    ```
+
+    Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
+
+## 📂 Project Structure
+
+```
+├── public/              # Static assets
+├── src/
+│   ├── app/             # Next.js App Router pages and API routes
+│   │   ├── (user)/      # User-facing routes
+│   │   ├── api/         # Backend API endpoints
+│   │   ├── layout.tsx   # Root layout
+│   │   └── page.tsx     # Landing page
+│   ├── components/      # Reusable React components
+│   │   ├── Feature.tsx
+│   │   ├── Hero.tsx
+│   │   ├── Navbar.tsx
+│   │   └── ...
+│   ├── lib/             # Utility functions and configurations
+│   │   ├── db.ts        # Database connection
+│   │   ├── env.ts       # Environment variable validation
+│   │   └── scalekit.ts  # Scalekit configuration
+│   └── models/          # Mongoose database models
+│       └── business.model.ts
+├── package.json         # Project dependencies and scripts
+└── README.md            # Project documentation
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🔌 API Reference
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The application exposes several API endpoints for internal use:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+-   `/api/auth`: Handles user authentication flows.
+-   `/api/business`: Manages business profiles and settings.
+-   `/api/chat`: Processes chat messages using Google Gemini.
 
-## Learn More
+## 🤝 Contributing
 
-To learn more about Next.js, take a look at the following resources:
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1.  Fork the project
+2.  Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3.  Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4.  Push to the branch (`git push origin feature/AmazingFeature`)
+5.  Open a Pull Request
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📄 License
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This project is licensed under the MIT License - see the LICENSE file for details.
