@@ -6,7 +6,7 @@ import { Bot } from "lucide-react";
 import { motion } from "motion/react";
 
 export const Embed = ({ ownerId }: { ownerId: string }) => {
-  const script = `<script\n  src="${ENV.API_URI}/chat_bot.js"\n  data-user-id="${ownerId}"\n></script>`;
+  const script = `<script\n  src="${ENV.API_URI}/chat_bot.js"\n  data-owner-id="${ownerId}"\n></script>`;
   const steps = [
     {
       n: "01",
