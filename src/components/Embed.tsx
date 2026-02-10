@@ -74,7 +74,7 @@ export const Embed = ({ ownerId }: { ownerId: string }) => {
                   &quot;{ENV.API_URI}/chat_bot.js&quot;
                 </span>
                 {"\n  "}
-                <span className="text-violet-500">data-user-id</span>
+                <span className="text-violet-500">data-owner-id</span>
                 <span className="text-slate-400">=</span>
                 <span className="text-orange-400">&quot;{ownerId}&quot;</span>
                 {"\n"}
