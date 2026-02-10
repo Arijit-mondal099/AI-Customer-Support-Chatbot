@@ -1,5 +1,5 @@
 (async function () {
-  const API_URI = "http://localhost:3000/api/chat";
+  const API_URI = "https://supportai-seven.vercel.app/api/chat";
   const script_tag = document.currentScript;
   const owner_id = script_tag.getAttribute("data-owner-id");
 
