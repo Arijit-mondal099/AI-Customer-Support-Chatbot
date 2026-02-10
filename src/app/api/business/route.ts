@@ -42,6 +42,9 @@ export async function POST(request: NextRequest) {
       Business Name:
       ${businessInfo.businessName}
 
+      Business email or support email:
+      ${supportEmail}
+
       Industry:
       ${businessInfo.industry}
 
