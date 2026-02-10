@@ -115,7 +115,7 @@ export const Setting = ({
       className="flex items-center justify-center min-h-screen px-4"
     >
       <div className="w-full max-w-3xl">
-        <div className="bg-white rounded-3xl border border-zinc-200 shadow-2xl">
+        <div className="bg-white rounded-3xl border border-zinc-200 shadow-2xl overflow-auto">
           {/* Header */}
           <div className="px-8 pt-8 pb-6 border-b border-slate-100">
             <div className="flex items-center gap-3">
