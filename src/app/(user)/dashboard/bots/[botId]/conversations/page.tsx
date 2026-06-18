@@ -1,7 +1,19 @@
-export default function ConversationsPage() {
-  return (
-    <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-12 text-center text-sm text-slate-400">
-      Conversations — coming soon
-    </div>
-  );
+import { redirect } from "next/navigation";
+import { requireOwner } from "@/lib/auth";
+import { getChatbot } from "@/lib/chatbots";
+import { ConversationsView } from "@/components/dashboard/ConversationsView";
+
+export default async function BotConversationsPage({
+  params,
+}: {
+  params: Promise<{ botId: string }>;
+}) {
+  const owner = await requireOwner();
+  if (!owner) redirect("/api/auth/login");
+
+  const { botId } = await params;
+  const bot = await getChatbot(owner.ownerId, botId);
+  if (!bot) redirect("/dashboard");
+
+  return <ConversationsView botId={bot._id} />;
 }
