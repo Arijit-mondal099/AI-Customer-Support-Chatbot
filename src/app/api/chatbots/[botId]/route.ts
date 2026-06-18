@@ -22,6 +22,12 @@ interface UpdateBody {
   supportEmail?: string;
   businessInfo?: Partial<{ businessName: string; industry: string; description: string }>;
   botInfo?: Partial<{ botName: string; communicationTone: string; personalityDescription: string }>;
+  appearance?: Partial<{
+    accentColor: string;
+    avatarUrl: string;
+    displayName: string;
+    welcomeMessage: string;
+  }>;
 }
 
 export async function GET(_request: NextRequest, { params }: Params) {
@@ -62,6 +68,13 @@ export async function PUT(request: NextRequest, { params }: Params) {
     bot.botInfo.communicationTone = body.botInfo.communicationTone ?? bot.botInfo.communicationTone;
     bot.botInfo.personalityDescription =
       body.botInfo.personalityDescription ?? bot.botInfo.personalityDescription;
+  }
+
+  if (body.appearance) {
+    bot.appearance.accentColor = body.appearance.accentColor ?? bot.appearance.accentColor;
+    bot.appearance.avatarUrl = body.appearance.avatarUrl ?? bot.appearance.avatarUrl;
+    bot.appearance.displayName = body.appearance.displayName ?? bot.appearance.displayName;
+    bot.appearance.welcomeMessage = body.appearance.welcomeMessage ?? bot.appearance.welcomeMessage;
   }
 
   // Regenerate the system instruction from the latest config.
