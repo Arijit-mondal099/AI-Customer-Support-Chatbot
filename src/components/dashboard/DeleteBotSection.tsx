@@ -4,10 +4,11 @@ import { useState } from "react";
 import { AlertTriangle, Trash2 } from "lucide-react";
 import { apiClient } from "@/lib/axios";
 import { useRouter } from "next/navigation";
+import { ConfirmDialog } from "./ConfirmDialog";
 
 export const DeleteBotSection = ({ botId, botName }: { botId: string; botName: string }) => {
   const router = useRouter();
-  const [confirming, setConfirming] = useState(false);
+  const [open, setOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   const handleDelete = async () => {
@@ -41,32 +42,27 @@ export const DeleteBotSection = ({ botId, botName }: { botId: string; botName: s
           </div>
         </div>
 
-        {!confirming ? (
-          <button
-            onClick={() => setConfirming(true)}
-            className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-xl border border-rose-200 bg-white px-4 py-2.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-50"
-          >
-            <Trash2 size={13} /> Delete bot
-          </button>
-        ) : (
-          <div className="flex shrink-0 items-center gap-2">
-            <button
-              onClick={() => setConfirming(false)}
-              disabled={deleting}
-              className="cursor-pointer rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 disabled:opacity-50"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleDelete}
-              disabled={deleting}
-              className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl bg-rose-600 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-rose-700 disabled:opacity-50"
-            >
-              <Trash2 size={13} /> {deleting ? "Deleting…" : "Yes, delete"}
-            </button>
-          </div>
-        )}
+        <button
+          onClick={() => setOpen(true)}
+          className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-xl border border-rose-200 bg-white px-4 py-2.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-50"
+        >
+          <Trash2 size={13} /> Delete bot
+        </button>
       </div>
+
+      <ConfirmDialog
+        open={open}
+        loading={deleting}
+        title="Delete chatbot?"
+        message={
+          <>
+            This permanently removes <span className="font-medium text-slate-700">{botName}</span>,
+            its knowledge base, and all conversations. This can&apos;t be undone.
+          </>
+        }
+        onCancel={() => setOpen(false)}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 };

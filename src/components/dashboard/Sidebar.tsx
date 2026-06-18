@@ -3,30 +3,35 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { Bot, Check, LogOut, Plus, Settings, Trash2, X } from "lucide-react";
+import { Bot, LogOut, Plus, Settings, Trash2 } from "lucide-react";
 import type { SerializedBot } from "@/lib/chatbots";
 import { apiClient } from "@/lib/axios";
 import { CreateBotButton } from "./CreateBotButton";
+import { ConfirmDialog } from "./ConfirmDialog";
 
 export const Sidebar = ({ bots, email }: { bots: SerializedBot[]; email: string }) => {
   const pathname = usePathname();
   const router = useRouter();
   const [confirmId, setConfirmId] = useState<string | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
-  const handleDelete = async (id: string) => {
-    setDeletingId(id);
+  const pendingBot = bots.find((b) => b._id === confirmId) ?? null;
+
+  const handleDelete = async () => {
+    if (!confirmId) return;
+    setDeleting(true);
     try {
-      const { data } = await apiClient.delete(`/api/chatbots/${id}`);
+      const { data } = await apiClient.delete(`/api/chatbots/${confirmId}`);
       if (data.success) {
+        const deletedId = confirmId;
         setConfirmId(null);
-        if (pathname.startsWith(`/dashboard/bots/${id}`)) router.push("/dashboard");
+        if (pathname.startsWith(`/dashboard/bots/${deletedId}`)) router.push("/dashboard");
         router.refresh();
       }
     } catch (error) {
       console.log(error);
     } finally {
-      setDeletingId(null);
+      setDeleting(false);
     }
   };
 
@@ -50,7 +55,6 @@ export const Sidebar = ({ bots, email }: { bots: SerializedBot[]; email: string 
         <nav className="space-y-1">
           {bots.map((b) => {
             const active = pathname.startsWith(`/dashboard/bots/${b._id}`);
-            const confirming = confirmId === b._id;
             return (
               <div
                 key={b._id}
@@ -70,41 +74,17 @@ export const Sidebar = ({ bots, email }: { bots: SerializedBot[]; email: string 
                   <span className="flex-1 truncate font-medium">{b.name}</span>
                 </Link>
 
-                {confirming ? (
-                  <span className="flex shrink-0 items-center gap-0.5 pr-2">
-                    <button
-                      onClick={() => handleDelete(b._id)}
-                      disabled={deletingId === b._id}
-                      aria-label="Confirm delete"
-                      className="cursor-pointer rounded-md p-1 text-rose-500 transition hover:bg-rose-50 disabled:opacity-50"
-                    >
-                      <Check size={14} />
-                    </button>
-                    <button
-                      onClick={() => setConfirmId(null)}
-                      aria-label="Cancel delete"
-                      className={`cursor-pointer rounded-md p-1 transition ${
-                        active
-                          ? "text-white/70 hover:bg-white/10"
-                          : "text-slate-400 hover:bg-slate-200"
-                      }`}
-                    >
-                      <X size={14} />
-                    </button>
-                  </span>
-                ) : (
-                  <button
-                    onClick={() => setConfirmId(b._id)}
-                    aria-label="Delete chatbot"
-                    className={`mr-2 shrink-0 cursor-pointer rounded-md p-1 opacity-0 transition group-hover:opacity-100 ${
-                      active
-                        ? "text-white/70 hover:bg-white/10"
-                        : "text-slate-400 hover:text-rose-500"
-                    }`}
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                )}
+                <button
+                  onClick={() => setConfirmId(b._id)}
+                  aria-label="Delete chatbot"
+                  className={`mr-2 shrink-0 cursor-pointer rounded-md p-1 opacity-0 transition group-hover:opacity-100 ${
+                    active
+                      ? "text-white/70 hover:bg-white/10"
+                      : "text-slate-400 hover:text-rose-500"
+                  }`}
+                >
+                  <Trash2 size={14} />
+                </button>
               </div>
             );
           })}
@@ -138,6 +118,21 @@ export const Sidebar = ({ bots, email }: { bots: SerializedBot[]; email: string 
           <LogOut size={16} /> Log out
         </a>
       </div>
+
+      <ConfirmDialog
+        open={!!confirmId}
+        loading={deleting}
+        title="Delete chatbot?"
+        message={
+          <>
+            This permanently removes{" "}
+            <span className="font-medium text-slate-700">{pendingBot?.name ?? "this bot"}</span>,
+            its knowledge base, and all conversations. This can&apos;t be undone.
+          </>
+        }
+        onCancel={() => setConfirmId(null)}
+        onConfirm={handleDelete}
+      />
     </aside>
   );
 };
