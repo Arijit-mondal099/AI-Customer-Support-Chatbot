@@ -2,23 +2,23 @@
 
 ## Commands
 
-| Command         | What it runs                     |
-| --------------- | -------------------------------- |
-| `npm run dev`   | `next dev` (dev server on :3000) |
-| `npm run build` | `next build`                     |
-| `npm run start` | `next start`                     |
-| `npm run lint`  | `eslint`                         |
-| `npm run format` | `prettier --check .`            |
-| `npm run format:fix` | `prettier --write .`       |
-| `npm run prepare` | `husky` (auto-runs on `npm install`) |
+| Command              | What it runs                         |
+| -------------------- | ------------------------------------ |
+| `npm run dev`        | `next dev` (dev server on :3000)     |
+| `npm run build`      | `next build`                         |
+| `npm run start`      | `next start`                         |
+| `npm run lint`       | `eslint`                             |
+| `npm run format`     | `prettier --check .`                 |
+| `npm run format:fix` | `prettier --write .`                 |
+| `npm run prepare`    | `husky` (auto-runs on `npm install`) |
 
 No test or typecheck scripts exist.
 
 ## Git hooks (husky)
 
-| Hook | What it runs |
-|------|-------------|
-| `pre-commit` | `npm run lint` + `npm run format` |
+| Hook         | What it runs                                                                                                                                       |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pre-commit` | `npm run lint` + `npm run format`                                                                                                                  |
 | `commit-msg` | `commitlint` – enforces [conventional commits](https://www.conventionalcommits.org/) (`type: message`, e.g. `feat: add login`, `fix: handle null`) |
 
 ## Environment
