@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { requireOwner } from "@/lib/auth";
 import { getChatbot } from "@/lib/chatbots";
 import { BotConfigForm } from "@/components/dashboard/BotConfigForm";
+import { DeleteBotSection } from "@/components/dashboard/DeleteBotSection";
 
 export default async function BotConfigPage({ params }: { params: Promise<{ botId: string }> }) {
   const owner = await requireOwner();
@@ -11,5 +12,10 @@ export default async function BotConfigPage({ params }: { params: Promise<{ botI
   const bot = await getChatbot(owner.ownerId, botId);
   if (!bot) redirect("/dashboard");
 
-  return <BotConfigForm bot={bot} />;
+  return (
+    <>
+      <BotConfigForm bot={bot} />
+      <DeleteBotSection botId={bot._id} botName={bot.name} />
+    </>
+  );
 }
