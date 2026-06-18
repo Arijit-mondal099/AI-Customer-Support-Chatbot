@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { Hero } from "@/components/Hero";
 import { Feature } from "@/components/Feature";
@@ -11,6 +12,8 @@ import { getUserSession } from "@/lib/getUserSession";
 
 const HomePage = async () => {
   const session = await getUserSession();
+
+  if (session) redirect("/dashboard");
 
   return (
     <div className="relative min-h-screen bg-pinstripe text-zinc-900 overflow-x-clip">
