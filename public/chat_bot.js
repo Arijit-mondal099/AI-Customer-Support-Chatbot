@@ -355,6 +355,37 @@
   const chat_input = chat_box.querySelector("#chat-input");
   const send_btn = chat_box.querySelector("#send-btn");
 
+  /* ------------------ Apply per-bot appearance ----------------------- */
+  if (bot_id) {
+    fetch(API_ORIGIN + "/api/chat/config?botId=" + encodeURIComponent(bot_id))
+      .then((r) => r.json())
+      .then((cfg) => {
+        if (!cfg || !cfg.success || !cfg.appearance) return;
+        const a = cfg.appearance;
+
+        if (a.accentColor) {
+          document.documentElement.style.setProperty("--accent", a.accentColor);
+        }
+
+        const name_el = chat_box.querySelector(".cb-header-name");
+        if (a.displayName && name_el) name_el.textContent = a.displayName;
+
+        if (a.avatarUrl) {
+          const avatar_el = chat_box.querySelector(".cb-header-avatar");
+          if (avatar_el) {
+            avatar_el.innerHTML =
+              '<img src="' +
+              a.avatarUrl +
+              '" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover"/>';
+          }
+        }
+
+        const first_msg = messages.querySelector(".cb-msg.model");
+        if (a.welcomeMessage && first_msg) first_msg.textContent = a.welcomeMessage;
+      })
+      .catch(() => {});
+  }
+
   function add_message(text, role) {
     const box = document.createElement("div");
     box.className = `cb-msg ${role}`;

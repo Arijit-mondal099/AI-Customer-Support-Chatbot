@@ -1,7 +1,19 @@
-export default function AppearancePage() {
-  return (
-    <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-12 text-center text-sm text-slate-400">
-      Appearance — coming soon
-    </div>
-  );
+import { redirect } from "next/navigation";
+import { requireOwner } from "@/lib/auth";
+import { getChatbot } from "@/lib/chatbots";
+import { AppearanceForm } from "@/components/dashboard/AppearanceForm";
+
+export default async function BotAppearancePage({
+  params,
+}: {
+  params: Promise<{ botId: string }>;
+}) {
+  const owner = await requireOwner();
+  if (!owner) redirect("/api/auth/login");
+
+  const { botId } = await params;
+  const bot = await getChatbot(owner.ownerId, botId);
+  if (!bot) redirect("/dashboard");
+
+  return <AppearanceForm bot={bot} />;
 }
