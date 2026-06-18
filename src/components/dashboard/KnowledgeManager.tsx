@@ -149,7 +149,7 @@ export const KnowledgeManager = ({ botId }: { botId: string }) => {
 
       {/* Document list */}
       <div>
-        <span className="mb-3 block text-xs font-semibold uppercase tracking-widest text-slate-400">
+        <span className="mb-3 block text-xs font-semibold font-title uppercase tracking-widest text-slate-400">
           Documents
         </span>
         {loading ? (

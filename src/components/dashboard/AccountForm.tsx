@@ -76,7 +76,7 @@ export const AccountForm = () => {
         <div className="space-y-5 px-6 py-6">
           {/* Provider selector */}
           <div>
-            <span className="mb-2 block text-xs font-bold uppercase tracking-widest text-slate-600">
+            <span className="mb-2 block text-xs font-bold font-title uppercase tracking-widest text-slate-600">
               AI provider
             </span>
             <div className="grid grid-cols-2 gap-2">
@@ -100,7 +100,7 @@ export const AccountForm = () => {
           <div className="space-y-3">
             <div className="flex items-center gap-2.5">
               <KeyRound size={14} className="text-slate-500" />
-              <span className="text-xs font-bold uppercase tracking-widest text-slate-600">
+              <span className="text-xs font-bold font-title uppercase tracking-widest text-slate-600">
                 {providerLabel} API key
               </span>
             </div>

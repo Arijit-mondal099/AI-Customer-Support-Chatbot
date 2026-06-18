@@ -47,6 +47,20 @@
   --color-gray-50: #f3f0e8;
   --color-gray-100: #e9e5db;
   --color-gray-200: #ddd8cb;
+
+  /* The dashboard is built on slate — remap it to the same warm scale so it
+     shares the landing page's cream-canvas / warm-text look. */
+  --color-slate-50: #f7f5ef;
+  --color-slate-100: #e7e3d8;
+  --color-slate-200: #ddd8cb;
+  --color-slate-300: #cfc8b8;
+  --color-slate-400: #948f82;
+  --color-slate-500: #6e6a60;
+  --color-slate-600: #5b574e;
+  --color-slate-700: #4a463d;
+  --color-slate-800: #2a2823;
+  --color-slate-900: #1b1a17;
+  --color-slate-950: #121110;
 }
 
 html {

@@ -23,7 +23,7 @@ export const Sidebar = ({ bots, email }: { bots: SerializedBot[]; email: string 
 
       {/* Bots */}
       <div className="flex-1 overflow-y-auto p-3">
-        <span className="block px-2 pb-2 text-[11px] font-semibold uppercase tracking-widest text-slate-400">
+        <span className="block px-2 pb-2 text-[11px] font-semibold font-title uppercase tracking-widest text-slate-400">
           Chatbots
         </span>
         <nav className="space-y-1">

@@ -58,7 +58,9 @@ export default async function BotOverview({ params }: { params: Promise<{ botId:
             >
               <div className="flex items-center gap-2 text-slate-400">
                 <Icon size={15} />
-                <span className="text-xs font-semibold uppercase tracking-widest">{s.label}</span>
+                <span className="text-xs font-semibold font-title uppercase tracking-widest">
+                  {s.label}
+                </span>
               </div>
               <p className="mt-2 text-2xl font-bold tracking-tight text-slate-900">{s.value}</p>
             </div>
@@ -72,7 +74,7 @@ export default async function BotOverview({ params }: { params: Promise<{ botId:
             key={it.label}
             className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
           >
-            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
+            <p className="text-xs font-semibold font-title uppercase tracking-widest text-slate-400">
               {it.label}
             </p>
             <p className="mt-1.5 truncate text-sm font-medium text-slate-800">{it.value}</p>

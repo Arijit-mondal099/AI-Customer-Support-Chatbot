@@ -97,7 +97,7 @@ export const AppearanceForm = ({ bot }: { bot: SerializedBot }) => {
 
       {/* Live preview */}
       <div>
-        <span className="mb-3 block text-xs font-semibold uppercase tracking-widest text-slate-400">
+        <span className="mb-3 block text-xs font-semibold font-title uppercase tracking-widest text-slate-400">
           Live preview
         </span>
         <div className="overflow-hidden rounded-2xl border border-slate-200 shadow-lg">

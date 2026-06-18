@@ -33,7 +33,7 @@ export const Embed = ({ botId }: { botId: string }) => {
     <div className="space-y-8">
       <section className="space-y-1">
         <h2 className="text-xl font-bold tracking-tight text-slate-900">Embed this chatbot</h2>
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-slate-500">
           One script tag. Zero dependencies. Paste it once and this bot is live on any website.
         </p>
       </section>
@@ -41,7 +41,7 @@ export const Embed = ({ botId }: { botId: string }) => {
       <section className="space-y-4">
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           {/* Header bar */}
-          <div className="flex items-center gap-3 border-b border-slate-200 bg-zinc-800 px-4 py-3">
+          <div className="flex items-center gap-3 border-b border-slate-800 bg-slate-900 px-4 py-3">
             <div className="flex gap-1.5">
               <span className="h-3 w-3 rounded-full bg-[#ff5f57]" />
               <span className="h-3 w-3 rounded-full bg-[#ffbd2e]" />
@@ -56,24 +56,24 @@ export const Embed = ({ botId }: { botId: string }) => {
           {/* Code */}
           <pre className="m-0 overflow-x-auto bg-white px-7 py-7 font-mono text-[13.5px] leading-[1.9]">
             <code>
-              <span className="text-sky-500">&lt;script</span>
+              <span className="text-slate-500">&lt;script</span>
               {"\n  "}
-              <span className="text-violet-500">src</span>
+              <span className="text-slate-900">src</span>
               <span className="text-slate-400">=</span>
-              <span className="text-orange-400">&quot;{ENV.API_URI}/chat_bot.js&quot;</span>
+              <span className="text-emerald-600">&quot;{ENV.API_URI}/chat_bot.js&quot;</span>
               {"\n  "}
-              <span className="text-violet-500">data-bot-id</span>
+              <span className="text-slate-900">data-bot-id</span>
               <span className="text-slate-400">=</span>
-              <span className="text-orange-400">&quot;{botId}&quot;</span>
+              <span className="text-emerald-600">&quot;{botId}&quot;</span>
               {"\n"}
-              <span className="text-sky-500">&gt;&lt;/script&gt;</span>
+              <span className="text-slate-500">&gt;&lt;/script&gt;</span>
             </code>
           </pre>
         </div>
 
         <p className="pl-1 font-mono text-[12px] text-slate-400">
           ↳ Place this just before your closing{" "}
-          <code className="rounded border border-violet-200 bg-violet-50 px-1.5 py-0.5 text-[12px] text-violet-500">
+          <code className="rounded border border-slate-200 bg-slate-100 px-1.5 py-0.5 text-[12px] text-slate-700">
             &lt;/body&gt;
           </code>{" "}
           tag
@@ -86,16 +86,15 @@ export const Embed = ({ botId }: { botId: string }) => {
           {steps.map((s) => (
             <div
               key={s.n}
-              className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 transition-all duration-300 hover:-translate-y-1 hover:border-violet-300 hover:shadow-[0_8px_32px_rgba(139,92,246,0.1)]"
+              className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 transition-all duration-300 hover:-translate-y-1 hover:border-slate-300 hover:shadow-[0_8px_32px_rgba(0,0,0,0.06)]"
             >
-              <div className="absolute inset-0 bg-linear-to-br from-violet-50 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-              <span className="relative mb-4 block font-mono text-[11px] font-medium tracking-widest text-violet-400">
+              <span className="relative mb-4 block font-title text-[11px] font-medium tracking-widest text-slate-400">
                 {s.n}
               </span>
               <h4 className="relative mb-2 text-[15px] font-semibold tracking-tight text-slate-800">
                 {s.title}
               </h4>
-              <p className="relative text-[13px] leading-relaxed text-slate-400">{s.desc}</p>
+              <p className="relative text-[13px] leading-relaxed text-slate-500">{s.desc}</p>
             </div>
           ))}
         </div>

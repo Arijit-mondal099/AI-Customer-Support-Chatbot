@@ -18,7 +18,7 @@ export const CopyButton = ({ text }: { text: string }) => {
       className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 font-mono text-[11px] tracking-wider transition-all duration-200 cursor-pointer ${
         copied
           ? "border-emerald-300 bg-emerald-50 text-emerald-600"
-          : "border-slate-200 bg-white text-slate-400 hover:border-violet-300 hover:bg-violet-50 hover:text-violet-500"
+          : "border-slate-200 bg-white text-slate-400 hover:border-slate-400 hover:bg-slate-100 hover:text-slate-700"
       }`}
     >
       {copied ? (
