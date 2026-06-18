@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
       path: "/",
     });
 
-    return NextResponse.redirect(ENV.API_URI);
+    return NextResponse.redirect(`${ENV.API_URI}/dashboard`);
   } catch (error) {
     console.log("Error validation", error);
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
