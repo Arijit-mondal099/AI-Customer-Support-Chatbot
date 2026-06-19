@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { provider, apiKey } = await resolveProviderKey(bot);
+    const { provider, apiKey } = resolveProviderKey(bot);
     if (!apiKey) {
       return NextResponse.json(
         { success: false, message: "No API key configured for this chatbot." },

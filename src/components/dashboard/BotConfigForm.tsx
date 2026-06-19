@@ -197,9 +197,7 @@ export const BotConfigForm = ({ bot }: { bot: SerializedBot }) => {
       <Card>
         <CardHeader>
           <CardTitle>Model &amp; API key</CardTitle>
-          <CardDescription>
-            This agent uses its own key. If empty, your account default key is used.
-          </CardDescription>
+          <CardDescription>This agent uses its own key to talk to the model.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-1.5">
@@ -223,7 +221,9 @@ export const BotConfigForm = ({ bot }: { bot: SerializedBot }) => {
             </div>
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="apiKey">API key</Label>
+            <Label htmlFor="apiKey">
+              API key <span className="text-destructive">*</span>
+            </Label>
             {hasKey && (
               <p className="font-mono text-xs text-muted-foreground">
                 Current: <span className="text-foreground">{maskedKey}</span>
@@ -242,8 +242,11 @@ export const BotConfigForm = ({ bot }: { bot: SerializedBot }) => {
       </Card>
 
       {/* Sticky save bar */}
-      <div className="sticky bottom-0 -mx-1 flex justify-end border-t border-border bg-background/80 px-1 py-3 backdrop-blur">
-        <Button onClick={save} disabled={saving}>
+      <div className="sticky bottom-0 -mx-1 flex items-center justify-end gap-3 border-t border-border bg-background/80 px-1 py-3 backdrop-blur">
+        {!hasKey && !apiKey.trim() && (
+          <span className="text-xs text-destructive">An API key is required.</span>
+        )}
+        <Button onClick={save} disabled={saving || (!hasKey && !apiKey.trim())}>
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           Save changes
         </Button>

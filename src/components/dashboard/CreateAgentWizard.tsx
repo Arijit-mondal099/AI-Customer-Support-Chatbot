@@ -39,7 +39,9 @@ export function CreateAgentWizard() {
       ? name.trim().length > 0 && businessName.trim().length > 0
       : step === 1
         ? botName.trim().length > 0 && tone.trim().length > 0
-        : true;
+        : step === 2
+          ? apiKey.trim().length > 0
+          : true;
 
   const create = async () => {
     setCreating(true);
@@ -119,8 +121,7 @@ export function CreateAgentWizard() {
           <CardDescription>
             {step === 0 && "Tell us about your business so the agent stays on-brand."}
             {step === 1 && "Give your agent a name and personality."}
-            {step === 2 &&
-              "Choose a provider and add its API key (optional — uses your account key otherwise)."}
+            {step === 2 && "Choose a provider and add this agent's API key."}
             {step === 3 && "Review and create your agent."}
           </CardDescription>
         </CardHeader>
@@ -237,17 +238,19 @@ export function CreateAgentWizard() {
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="apiKey">API key</Label>
+                <Label htmlFor="apiKey">
+                  API key <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="apiKey"
                   type="password"
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
-                  placeholder="Paste this agent's API key (optional)"
+                  placeholder="Paste this agent's API key"
                   className="font-mono"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Leave empty to use your account&apos;s default key.
+                  Each agent uses its own key — grab one from your provider&apos;s console.
                 </p>
               </div>
             </>
@@ -261,7 +264,7 @@ export function CreateAgentWizard() {
                   ["Business", businessName || "—"],
                   ["Bot name", botName || "—"],
                   ["Provider", provider === "openai" ? "OpenAI" : "Google Gemini"],
-                  ["API key", apiKey.trim() ? "Set" : "Account default"],
+                  ["API key", apiKey.trim() ? "Set" : "Not set"],
                 ].map(([k, v]) => (
                   <div key={k} className="flex items-center justify-between gap-4 px-4 py-2.5">
                     <dt className="text-sm text-muted-foreground">{k}</dt>
@@ -289,7 +292,7 @@ export function CreateAgentWizard() {
                   <span
                     className={cn(
                       "absolute top-0.5 h-4 w-4 rounded-full bg-background transition-all",
-                      makeLive ? "left-[1.125rem]" : "left-0.5",
+                      makeLive ? "left-4.5" : "left-0.5",
                     )}
                   />
                 </span>

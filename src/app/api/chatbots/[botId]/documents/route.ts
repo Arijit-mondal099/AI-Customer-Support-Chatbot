@@ -71,7 +71,7 @@ export async function POST(request: NextRequest, { params }: Params) {
   const bot = await ChatbotModel.findOne({ _id: botId, ownerId: owner.ownerId });
   if (!bot) return notFound();
 
-  const { provider, apiKey } = await resolveProviderKey(bot);
+  const { provider, apiKey } = resolveProviderKey(bot);
   if (!apiKey) return bad("Add an API key in this bot's Model & Key tab first.");
 
   // Resolve the raw text + title + source type from a file upload (multipart)
