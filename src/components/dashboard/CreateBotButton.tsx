@@ -1,15 +1,18 @@
 "use client";
 
 import { apiClient } from "@/lib/axios";
+import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export const CreateBotButton = ({
   className,
   children,
+  variant,
 }: {
   className?: string;
   children: React.ReactNode;
+  variant?: "default" | "outline" | "secondary";
 }) => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -30,8 +33,8 @@ export const CreateBotButton = ({
   };
 
   return (
-    <button onClick={create} disabled={loading} className={className}>
+    <Button onClick={create} disabled={loading} className={className} variant={variant}>
       {children}
-    </button>
+    </Button>
   );
 };

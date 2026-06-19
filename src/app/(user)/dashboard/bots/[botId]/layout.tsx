@@ -1,6 +1,9 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
+import { ChevronLeft } from "lucide-react";
 import { requireOwner } from "@/lib/auth";
 import { getChatbot } from "@/lib/chatbots";
+import { Badge } from "@/components/ui/badge";
 import { TabBar } from "@/components/dashboard/TabBar";
 
 export default async function BotLayout({
@@ -18,18 +21,22 @@ export default async function BotLayout({
   if (!bot) redirect("/dashboard");
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-8">
+    <div className="mx-auto max-w-5xl">
+      <Link
+        href="/dashboard/agents"
+        className="mb-3 inline-flex items-center gap-1 text-xs font-medium text-muted-foreground transition hover:text-foreground"
+      >
+        <ChevronLeft className="h-3.5 w-3.5" /> Agents
+      </Link>
       <header className="mb-6 flex items-center gap-3">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">{bot.name}</h1>
-        <span
-          className={`rounded-full border px-2.5 py-0.5 text-[11px] font-semibold capitalize ${
-            bot.status === "live"
-              ? "border-emerald-200 bg-emerald-50 text-emerald-600"
-              : "border-slate-200 bg-slate-100 text-slate-500"
-          }`}
-        >
-          {bot.status}
-        </span>
+        <h1 className="text-2xl font-bold tracking-tight">{bot.name}</h1>
+        {bot.status === "live" ? (
+          <Badge variant="outline" className="border-emerald-300 bg-emerald-50 text-emerald-700">
+            live
+          </Badge>
+        ) : (
+          <Badge variant="secondary">draft</Badge>
+        )}
       </header>
       <TabBar botId={bot._id} />
       <div className="py-6">{children}</div>
