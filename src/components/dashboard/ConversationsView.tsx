@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { MessageSquare } from "lucide-react";
 import { apiClient } from "@/lib/axios";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 interface ConversationItem {
@@ -68,7 +69,20 @@ export const ConversationsView = ({ botId }: { botId: string }) => {
   };
 
   if (loadingList) {
-    return <p className="text-sm text-muted-foreground">Loading conversations…</p>;
+    return (
+      <div className="grid gap-4 lg:grid-cols-[20rem_1fr]">
+        <div className="space-y-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-14 w-full rounded-xl" />
+          ))}
+        </div>
+        <Card className="min-h-80">
+          <CardContent className="py-5">
+            <Skeleton className="h-4 w-48" />
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   if (conversations.length === 0) {
@@ -116,7 +130,11 @@ export const ConversationsView = ({ botId }: { botId: string }) => {
               Select a conversation to read the transcript.
             </p>
           ) : loadingThread ? (
-            <p className="text-sm text-muted-foreground">Loading transcript…</p>
+            <div className="space-y-3">
+              <Skeleton className="h-10 w-2/3 rounded-2xl" />
+              <Skeleton className="ml-auto h-10 w-1/2 rounded-2xl" />
+              <Skeleton className="h-16 w-3/4 rounded-2xl" />
+            </div>
           ) : (
             <div className="space-y-3">
               {messages.map((m) => (

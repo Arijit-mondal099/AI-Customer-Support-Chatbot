@@ -219,3 +219,10 @@ h2 {
     @apply font-sans;
   }
 }
+
+/* Loading skeleton shimmer sweep. */
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}

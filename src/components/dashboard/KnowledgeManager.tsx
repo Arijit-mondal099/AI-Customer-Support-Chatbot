@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
@@ -209,7 +210,19 @@ export const KnowledgeManager = ({ botId }: { botId: string }) => {
           Documents
         </span>
         {loading ? (
-          <p className="text-sm text-muted-foreground">Loading…</p>
+          <div className="space-y-2">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Card key={i}>
+                <CardContent className="flex items-center gap-3 py-3">
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-20" />
+                  </div>
+                  <Skeleton className="h-5 w-14 rounded-full" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         ) : documents.length === 0 ? (
           <Card className="border-dashed">
             <CardContent className="py-10 text-center text-sm text-muted-foreground">
