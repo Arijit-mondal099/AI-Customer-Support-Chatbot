@@ -1,6 +1,13 @@
+import { getChatModel } from "@/lib/ai";
 import { db_connection } from "@/lib/db";
-import { BusinessModel } from "@/models/business.model";
-import { GoogleGenAI, ThinkingLevel } from "@google/genai";
+import { supportsEmbeddings } from "@/lib/options";
+import { resolveProviderKey } from "@/lib/providerKey";
+import { isRagConfigured, retrieve } from "@/lib/rag";
+import { ChatbotModel } from "@/models/chatbot.model";
+import { ConversationModel } from "@/models/conversation.model";
+import { MessageModel } from "@/models/message.model";
+import { AIMessage, HumanMessage, SystemMessage } from "@langchain/core/messages";
+import { isValidObjectId } from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
 
 const corsHeaders = {
@@ -9,75 +16,138 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
+// How many prior messages to replay as context for multi-turn conversations.
+const HISTORY_LIMIT = 20;
+
 export async function POST(request: NextRequest) {
   try {
-    const { prompt, ownerId } = (await request.json()) as {
-      prompt: string;
-      ownerId: string;
+    const { prompt, botId, ownerId, sessionId, preview, history } = (await request.json()) as {
+      prompt?: string;
+      botId?: string;
+      ownerId?: string;
+      sessionId?: string;
+      preview?: boolean;
+      history?: { role: "user" | "model"; text: string }[];
     };
 
-    if (!prompt?.trim() || !ownerId?.trim()) {
+    if (!prompt?.trim() || (!botId?.trim() && !ownerId?.trim())) {
       return NextResponse.json(
-        {
-          success: false,
-          message: "Missing required fields: prompt and ownId.",
-        },
-        { status: 400 },
+        { success: false, message: "Missing required fields: prompt and botId." },
+        { status: 400, headers: corsHeaders },
       );
     }
 
     await db_connection();
 
-    const business = await BusinessModel.findOne({ $or: [{ ownerId }] });
+    // Resolve the chatbot by its id (preferred) or, for legacy data-owner-id
+    // embeds, fall back to that owner's first live (else first) bot.
+    let bot = botId && isValidObjectId(botId) ? await ChatbotModel.findById(botId) : null;
+    if (!bot && ownerId) {
+      bot = await ChatbotModel.findOne({ ownerId, status: "live" }).sort({ createdAt: 1 });
+      if (!bot) bot = await ChatbotModel.findOne({ ownerId }).sort({ createdAt: 1 });
+    }
 
-    if (!business) {
+    if (!bot) {
       return NextResponse.json(
-        {
-          success: false,
-          message: "Business not found for the provided ownerId.",
-        },
-        { status: 404 },
+        { success: false, message: "Chatbot not found." },
+        { status: 404, headers: corsHeaders },
       );
     }
 
-    const ai = new GoogleGenAI({ apiKey: business.apiKey });
+    const { provider, apiKey, model } = resolveProviderKey(bot);
+    if (!apiKey) {
+      return NextResponse.json(
+        { success: false, message: "No API key configured for this chatbot." },
+        { status: 400, headers: corsHeaders },
+      );
+    }
 
-    const LLM = ai.chats.create({
-      model: "gemini-3-flash-preview",
-      history: [],
-      config: {
-        systemInstruction: business.knowledge,
-        thinkingConfig: {
-          thinkingLevel: ThinkingLevel.LOW,
-        },
-      },
-    });
+    // Replay prior turns for multi-turn context. Preview (playground) chats send
+    // their history in the request and are never persisted; embedded chats load
+    // it from the stored conversation.
+    const priorMessages = [];
+    if (preview) {
+      for (const m of (history ?? []).slice(-HISTORY_LIMIT)) {
+        priorMessages.push(m.role === "model" ? new AIMessage(m.text) : new HumanMessage(m.text));
+      }
+    } else if (sessionId?.trim()) {
+      const conversation = await ConversationModel.findOne({ botId: bot._id, sessionId });
+      if (conversation) {
+        const prev = await MessageModel.find({ conversationId: conversation._id })
+          .sort({ createdAt: 1 })
+          .limit(HISTORY_LIMIT)
+          .lean();
+        for (const m of prev) {
+          priorMessages.push(m.role === "model" ? new AIMessage(m.text) : new HumanMessage(m.text));
+        }
+      }
+    }
 
-    const res = await LLM.sendMessage({ message: prompt });
+    // Ground the answer in the bot's knowledge base (best-effort).
+    // Only providers with an embeddings API can run retrieval.
+    let systemText = bot.knowledge;
+    if (isRagConfigured() && supportsEmbeddings(provider)) {
+      try {
+        const snippets = await retrieve(provider, apiKey, String(bot._id), prompt, 5);
+        if (snippets.length) {
+          const block = snippets.map((s, i) => `[${i + 1}] ${s}`).join("\n\n");
+          systemText = `Relevant knowledge (use this to answer accurately):\n${block}\n\n---\n\n${bot.knowledge}`;
+        }
+      } catch (ragErr) {
+        console.error("RAG retrieve failed", ragErr);
+      }
+    }
+
+    const chatModel = getChatModel(provider, apiKey, model);
+    const result = await chatModel.invoke([
+      new SystemMessage(systemText),
+      ...priorMessages,
+      new HumanMessage(prompt),
+    ]);
+
+    const content = result.content;
+    const reply =
+      typeof content === "string"
+        ? content
+        : content
+            .map((part) =>
+              typeof part === "string" ? part : "text" in part ? String(part.text ?? "") : "",
+            )
+            .join("");
+
+    // Persist the exchange (best-effort; never fail the reply on a logging error).
+    // Preview/playground chats are never stored.
+    if (!preview && sessionId?.trim()) {
+      try {
+        const now = new Date();
+        const convo = await ConversationModel.findOneAndUpdate(
+          { botId: bot._id, sessionId },
+          {
+            $setOnInsert: { botId: bot._id, ownerId: bot.ownerId, sessionId, startedAt: now },
+            $set: { lastMessageAt: now },
+            $inc: { messageCount: 2 },
+          },
+          { new: true, upsert: true },
+        );
+        await MessageModel.insertMany([
+          { conversationId: convo._id, botId: bot._id, role: "user", text: prompt },
+          { conversationId: convo._id, botId: bot._id, role: "model", text: reply },
+        ]);
+      } catch (logErr) {
+        console.error("Failed to log conversation", logErr);
+      }
+    }
 
     return NextResponse.json(
-      {
-        success: true,
-        data: { role: "model", text: res.text! },
-      },
-      {
-        status: 200,
-        headers: corsHeaders,
-      },
+      { success: true, data: { role: "model", text: reply } },
+      { status: 200, headers: corsHeaders },
     );
   } catch (error) {
     console.error("Error From AI Gen", error);
 
     return NextResponse.json(
-      {
-        success: false,
-        message: "An error occurred while processing the request.",
-        error,
-      },
-      {
-        status: 500,
-        headers: corsHeaders,
-      },
+      { success: false, message: "An error occurred while processing the request.", error },
+      { status: 500, headers: corsHeaders },
     );
   }
 }

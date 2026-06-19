@@ -1,11 +1,21 @@
 (async function () {
-  const API_URI = "https://supportai-seven.vercel.app/api/chat";
   const script_tag = document.currentScript;
+  const bot_id = script_tag.getAttribute("data-bot-id");
   const owner_id = script_tag.getAttribute("data-owner-id");
+  // Derive the API origin from the script's own URL so the widget works on any deployment.
+  const API_ORIGIN = new URL(script_tag.src).origin;
+  const API_URI = API_ORIGIN + "/api/chat";
 
-  if (!owner_id) {
-    alert("Oops! Owner ID not found. Please contact the website administrator.");
+  if (!bot_id && !owner_id) {
+    alert("Oops! Bot ID not found. Please contact the website administrator.");
     return;
+  }
+
+  // Stable anonymous session id so a visitor's messages group into one conversation.
+  let session_id = localStorage.getItem("supportai_session_id");
+  if (!session_id) {
+    session_id = "s_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+    localStorage.setItem("supportai_session_id", session_id);
   }
 
   /* ----------------------------- CSS --------------------------------- */
@@ -345,6 +355,37 @@
   const chat_input = chat_box.querySelector("#chat-input");
   const send_btn = chat_box.querySelector("#send-btn");
 
+  /* ------------------ Apply per-bot appearance ----------------------- */
+  if (bot_id) {
+    fetch(API_ORIGIN + "/api/chat/config?botId=" + encodeURIComponent(bot_id))
+      .then((r) => r.json())
+      .then((cfg) => {
+        if (!cfg || !cfg.success || !cfg.appearance) return;
+        const a = cfg.appearance;
+
+        if (a.accentColor) {
+          document.documentElement.style.setProperty("--accent", a.accentColor);
+        }
+
+        const name_el = chat_box.querySelector(".cb-header-name");
+        if (a.displayName && name_el) name_el.textContent = a.displayName;
+
+        if (a.avatarUrl) {
+          const avatar_el = chat_box.querySelector(".cb-header-avatar");
+          if (avatar_el) {
+            avatar_el.innerHTML =
+              '<img src="' +
+              a.avatarUrl +
+              '" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover"/>';
+          }
+        }
+
+        const first_msg = messages.querySelector(".cb-msg.model");
+        if (a.welcomeMessage && first_msg) first_msg.textContent = a.welcomeMessage;
+      })
+      .catch(() => {});
+  }
+
   function add_message(text, role) {
     const box = document.createElement("div");
     box.className = `cb-msg ${role}`;
@@ -376,7 +417,12 @@
       const res = await fetch(API_URI, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: text, ownerId: owner_id }),
+        body: JSON.stringify({
+          prompt: text,
+          botId: bot_id,
+          ownerId: owner_id,
+          sessionId: session_id,
+        }),
       });
 
       const val = await res.json();
