@@ -4,7 +4,6 @@ import Link from "next/link";
 import { Activity, Bot, ChevronRight, MessageSquare, Plus, Users } from "lucide-react";
 import { motion } from "motion/react";
 import type { AccountAnalytics } from "@/lib/analytics";
-import type { SerializedBot } from "@/lib/chatbots";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -16,12 +15,6 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { OverviewChart } from "@/components/dashboard/OverviewChart";
-
-const fadeUp = {
-  initial: { opacity: 0, y: 24 },
-  animate: { opacity: 1, y: 0 },
-  transition: { type: "spring", bounce: 0.3, duration: 0.6 },
-};
 
 const formatDate = (iso: string | null) =>
   iso
@@ -35,10 +28,8 @@ const formatDate = (iso: string | null) =>
 
 export const OverviewContent = ({
   analytics,
-  bots,
 }: {
   analytics: AccountAnalytics;
-  bots: SerializedBot[];
 }) => {
   const { totals, daily, topAgents, recent } = analytics;
   const stats = [

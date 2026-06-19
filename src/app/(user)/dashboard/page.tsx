@@ -41,5 +41,5 @@ export default async function OverviewPage() {
     );
   }
 
-  return <OverviewContent analytics={analytics} bots={bots} />;
+  return <OverviewContent analytics={analytics} />;
 }
