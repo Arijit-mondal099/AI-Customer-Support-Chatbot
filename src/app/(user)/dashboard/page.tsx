@@ -1,36 +1,10 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
-import { Activity, Bot, MessageSquare, Plus, Users } from "lucide-react";
+import { Bot } from "lucide-react";
 import { requireOwner } from "@/lib/auth";
 import { getAccountAnalytics } from "@/lib/analytics";
 import { listChatbots } from "@/lib/chatbots";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { OverviewChart } from "@/components/dashboard/OverviewChart";
-
-const NewAgentButton = () => (
-  <Button render={<Link href="/dashboard/agents/new" />} nativeButton={false}>
-    <Plus className="h-4 w-4" /> New agent
-  </Button>
-);
-
-const formatDate = (iso: string | null) =>
-  iso
-    ? new Date(iso).toLocaleString(undefined, {
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    : "—";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { OverviewContent } from "@/components/dashboard/OverviewContent";
 
 export default async function OverviewPage() {
   const owner = await requireOwner();
@@ -55,118 +29,17 @@ export default async function OverviewPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <NewAgentButton />
+            <a
+              href="/dashboard/agents/new"
+              className="inline-flex items-center gap-2 rounded-xl bg-zinc-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-zinc-800"
+            >
+              <Bot className="h-4 w-4" /> New agent
+            </a>
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  const { totals, daily, topAgents, recent } = analytics;
-  const stats = [
-    { label: "Agents", value: totals.agents, icon: Bot },
-    { label: "Live", value: totals.liveAgents, icon: Activity },
-    { label: "Conversations", value: totals.conversations, icon: Users },
-    { label: "Messages", value: totals.messages, icon: MessageSquare },
-  ];
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Overview</h1>
-          <p className="text-sm text-muted-foreground">Activity across all your agents.</p>
-        </div>
-        <NewAgentButton />
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((s) => {
-          const Icon = s.icon;
-          return (
-            <Card key={s.label}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {s.label}
-                </CardTitle>
-                <Icon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold tracking-tight">{s.value.toLocaleString()}</div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Messages</CardTitle>
-            <CardDescription>Last 14 days across all agents</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <OverviewChart data={daily} />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Top agents</CardTitle>
-            <CardDescription>By messages handled</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {topAgents.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No activity yet.</p>
-            ) : (
-              topAgents.map((a) => (
-                <div key={a._id} className="flex items-center justify-between gap-3">
-                  <Link
-                    href={`/dashboard/bots/${a._id}`}
-                    className="truncate text-sm font-medium hover:underline"
-                  >
-                    {a.name}
-                  </Link>
-                  <span className="shrink-0 text-sm text-muted-foreground">{a.messages}</span>
-                </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent conversations</CardTitle>
-          <CardDescription>Latest sessions across your agents</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {recent.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No conversations yet.</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Agent</TableHead>
-                  <TableHead>Messages</TableHead>
-                  <TableHead className="text-right">Last active</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {recent.map((c) => (
-                  <TableRow key={c._id}>
-                    <TableCell className="font-medium">{c.botName}</TableCell>
-                    <TableCell>{c.messageCount}</TableCell>
-                    <TableCell className="text-right text-muted-foreground">
-                      {formatDate(c.lastMessageAt)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
+  return <OverviewContent analytics={analytics} bots={bots} />;
 }
