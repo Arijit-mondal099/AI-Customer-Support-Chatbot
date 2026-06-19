@@ -79,7 +79,12 @@ export default function PluginsPage() {
                   <CardDescription className="mt-1">{p.desc}</CardDescription>
                 </div>
                 {p.status === "active" ? (
-                  <Button render={<Link href="/dashboard/agents" />} variant="outline" size="sm">
+                  <Button
+                    render={<Link href="/dashboard/agents" />}
+                    nativeButton={false}
+                    variant="outline"
+                    size="sm"
+                  >
                     Configure
                   </Button>
                 ) : (

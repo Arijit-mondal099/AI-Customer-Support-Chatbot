@@ -125,6 +125,7 @@ export function AgentsGrid({ bots }: { bots: SerializedBot[] }) {
                 )}
                 <Button
                   render={<Link href={`/dashboard/bots/${b._id}`} />}
+                  nativeButton={false}
                   variant="outline"
                   size="sm"
                 >
