@@ -13,8 +13,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { CreateBotButton } from "@/components/dashboard/CreateBotButton";
+import { Button } from "@/components/ui/button";
 import { OverviewChart } from "@/components/dashboard/OverviewChart";
+
+const NewAgentButton = () => (
+  <Button render={<Link href="/dashboard/agents/new" />} nativeButton={false}>
+    <Plus className="h-4 w-4" /> New agent
+  </Button>
+);
 
 const formatDate = (iso: string | null) =>
   iso
@@ -49,9 +55,7 @@ export default async function OverviewPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <CreateBotButton>
-              <Plus className="h-4 w-4" /> New agent
-            </CreateBotButton>
+            <NewAgentButton />
           </CardContent>
         </Card>
       </div>
@@ -73,9 +77,7 @@ export default async function OverviewPage() {
           <h1 className="text-2xl font-bold tracking-tight">Overview</h1>
           <p className="text-sm text-muted-foreground">Activity across all your agents.</p>
         </div>
-        <CreateBotButton>
-          <Plus className="h-4 w-4" /> New agent
-        </CreateBotButton>
+        <NewAgentButton />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

@@ -25,7 +25,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { CreateBotButton } from "./CreateBotButton";
+const NewAgentButton = () => (
+  <Button render={<Link href="/dashboard/agents/new" />} nativeButton={false}>
+    <Plus className="h-4 w-4" /> New agent
+  </Button>
+);
 
 export function AgentsGrid({ bots }: { bots: SerializedBot[] }) {
   const router = useRouter();
@@ -57,9 +61,7 @@ export function AgentsGrid({ bots }: { bots: SerializedBot[] }) {
           <h1 className="text-2xl font-bold tracking-tight">Agents</h1>
           <p className="text-sm text-muted-foreground">Create and manage your AI support agents.</p>
         </div>
-        <CreateBotButton>
-          <Plus className="h-4 w-4" /> New agent
-        </CreateBotButton>
+        <NewAgentButton />
       </div>
 
       {items.length === 0 ? (
@@ -71,9 +73,7 @@ export function AgentsGrid({ bots }: { bots: SerializedBot[] }) {
           <p className="mb-4 mt-1 max-w-xs text-sm text-muted-foreground">
             Create your first agent to start answering customers.
           </p>
-          <CreateBotButton>
-            <Plus className="h-4 w-4" /> New agent
-          </CreateBotButton>
+          <NewAgentButton />
         </Card>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
