@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { motion } from "motion/react";
 import { FileText, Link2, Loader2, Plus, Trash2, Upload } from "lucide-react";
 import { apiClient } from "@/lib/axios";
 import { Badge } from "@/components/ui/badge";
@@ -230,32 +231,46 @@ export const KnowledgeManager = ({ botId }: { botId: string }) => {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-2">
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
+            className="space-y-2"
+          >
             {documents.map((d) => (
-              <Card key={d._id}>
-                <CardContent className="flex items-center gap-3 py-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">{d.title}</p>
-                    <p className="text-[11px] text-muted-foreground">
-                      {d.sourceType} · {d.chunkCount} chunks
-                    </p>
-                  </div>
-                  <Badge variant="outline" className={cn("capitalize", statusStyles[d.status])}>
-                    {d.status}
-                  </Badge>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                    onClick={() => remove(d._id)}
-                    aria-label="Delete document"
-                  >
-                    <Trash2 size={15} />
-                  </Button>
-                </CardContent>
-              </Card>
+              <motion.div
+                key={d._id}
+                variants={{
+                  hidden: { opacity: 0, y: 12 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+                transition={{ type: "spring", bounce: 0.3, duration: 0.4 }}
+              >
+                <Card>
+                  <CardContent className="flex items-center gap-3 py-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">{d.title}</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        {d.sourceType} · {d.chunkCount} chunks
+                      </p>
+                    </div>
+                    <Badge variant="outline" className={cn("capitalize", statusStyles[d.status])}>
+                      {d.status}
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                      onClick={() => remove(d._id)}
+                      aria-label="Delete document"
+                    >
+                      <Trash2 size={15} />
+                    </Button>
+                  </CardContent>
+                </Card>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
       </div>
     </div>

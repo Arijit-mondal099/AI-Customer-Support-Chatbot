@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion } from "motion/react";
 import { MessageSquare } from "lucide-react";
 import { apiClient } from "@/lib/axios";
 import { Card, CardContent } from "@/components/ui/card";
@@ -100,28 +101,41 @@ export const ConversationsView = ({ botId }: { botId: string }) => {
 
   return (
     <div className="grid gap-4 lg:grid-cols-[20rem_1fr]">
-      <div className="space-y-2">
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={{ visible: { transition: { staggerChildren: 0.04 } } }}
+        className="space-y-2"
+      >
         {conversations.map((c) => (
-          <button
+          <motion.div
             key={c._id}
-            onClick={() => openConversation(c._id)}
-            className={cn(
-              "w-full cursor-pointer rounded-xl border px-4 py-3 text-left transition",
-              selected === c._id
-                ? "border-primary bg-primary text-primary-foreground"
-                : "border-border bg-card hover:border-muted-foreground/30",
-            )}
+            variants={{
+              hidden: { opacity: 0, x: -12 },
+              visible: { opacity: 1, x: 0 },
+            }}
+            transition={{ type: "spring", bounce: 0.3, duration: 0.4 }}
           >
-            <div className="flex items-center justify-between gap-2">
-              <span className="truncate font-mono text-xs opacity-70">
-                {c.sessionId.slice(0, 14)}
-              </span>
-              <span className="shrink-0 text-[11px] opacity-70">{c.messageCount} msgs</span>
-            </div>
-            <p className="mt-1 text-[11px] opacity-60">{formatDate(c.lastMessageAt)}</p>
-          </button>
+            <button
+              onClick={() => openConversation(c._id)}
+              className={cn(
+                "w-full cursor-pointer rounded-xl border px-4 py-3 text-left transition",
+                selected === c._id
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border bg-card hover:border-muted-foreground/30",
+              )}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="truncate font-mono text-xs opacity-70">
+                  {c.sessionId.slice(0, 14)}
+                </span>
+                <span className="shrink-0 text-[11px] opacity-70">{c.messageCount} msgs</span>
+              </div>
+              <p className="mt-1 text-[11px] opacity-60">{formatDate(c.lastMessageAt)}</p>
+            </button>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
       <Card className="min-h-80">
         <CardContent className="py-5">
@@ -138,8 +152,11 @@ export const ConversationsView = ({ botId }: { botId: string }) => {
           ) : (
             <div className="space-y-3">
               {messages.map((m) => (
-                <div
+                <motion.div
                   key={m._id}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ type: "spring", bounce: 0.3, duration: 0.4 }}
                   className={cn(
                     "max-w-[80%] rounded-2xl px-4 py-2.5 text-sm",
                     m.role === "user"
@@ -148,7 +165,7 @@ export const ConversationsView = ({ botId }: { botId: string }) => {
                   )}
                 >
                   {m.text}
-                </div>
+                </motion.div>
               ))}
             </div>
           )}
