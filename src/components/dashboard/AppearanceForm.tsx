@@ -1,16 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Save, Send } from "lucide-react";
-import { Input } from "@/components/Input";
-import { apiClient } from "@/lib/axios";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Loader2, Save, Send } from "lucide-react";
+import { apiClient } from "@/lib/axios";
 import type { SerializedBot } from "@/lib/chatbots";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 export const AppearanceForm = ({ bot }: { bot: SerializedBot }) => {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
 
   const [accentColor, setAccentColor] = useState(bot.appearance.accentColor);
   const [avatarUrl, setAvatarUrl] = useState(bot.appearance.avatarUrl);
@@ -24,84 +28,86 @@ export const AppearanceForm = ({ bot }: { bot: SerializedBot }) => {
         appearance: { accentColor, avatarUrl, displayName, welcomeMessage },
       });
       if (data.success) {
-        setSaved(true);
-        setTimeout(() => setSaved(false), 2500);
+        toast.success("Appearance saved");
         router.refresh();
+      } else {
+        toast.error(data.message || "Could not save.");
       }
-    } catch (error) {
-      console.log(error);
+    } catch {
+      toast.error("Could not save.");
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <div className="grid gap-8 lg:grid-cols-2">
-      {/* Controls */}
-      <div className="space-y-6">
-        <div>
-          <label className="mb-1.5 block text-xs font-semibold text-slate-500">Accent color</label>
-          <div className="flex items-center gap-3">
-            <input
-              type="color"
-              value={accentColor}
-              onChange={(e) => setAccentColor(e.target.value)}
-              className="h-10 w-12 cursor-pointer rounded-lg border border-slate-200 bg-white p-1"
-            />
-            <input
-              type="text"
-              value={accentColor}
-              onChange={(e) => setAccentColor(e.target.value)}
-              className="w-32 rounded-xl border border-slate-200 bg-white px-3 py-2.5 font-mono text-sm text-slate-700 outline-none transition focus:ring-2 focus:ring-slate-900/10"
+    <div className="grid gap-6 lg:grid-cols-2">
+      <Card>
+        <CardHeader>
+          <CardTitle>Appearance</CardTitle>
+          <CardDescription>Customize how the chat widget looks on your site.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="accent">Accent color</Label>
+            <div className="flex items-center gap-3">
+              <input
+                id="accent"
+                type="color"
+                value={accentColor}
+                onChange={(e) => setAccentColor(e.target.value)}
+                className="h-9 w-12 cursor-pointer rounded-md border border-border bg-background p-1"
+              />
+              <Input
+                value={accentColor}
+                onChange={(e) => setAccentColor(e.target.value)}
+                className="w-32 font-mono"
+              />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="displayName">Display name</Label>
+            <Input
+              id="displayName"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="Support Agent"
             />
           </div>
-        </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="avatarUrl">Avatar image URL</Label>
+            <Input
+              id="avatarUrl"
+              type="url"
+              value={avatarUrl}
+              onChange={(e) => setAvatarUrl(e.target.value)}
+              placeholder="https://…/avatar.png"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="welcome">Welcome message</Label>
+            <Textarea
+              id="welcome"
+              rows={3}
+              value={welcomeMessage}
+              onChange={(e) => setWelcomeMessage(e.target.value)}
+              placeholder="Hello! How can I assist you today?"
+            />
+          </div>
+          <div className="flex justify-end border-t border-border pt-4">
+            <Button onClick={save} disabled={saving}>
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              Save appearance
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
-        <Input
-          type="text"
-          label="Display name"
-          placeholder="Support Agent"
-          value={displayName}
-          onChange={(e) => setDisplayName(e.target.value)}
-        />
-
-        <Input
-          type="url"
-          label="Avatar image URL"
-          placeholder="https://…/avatar.png"
-          hint="Leave empty to use the default avatar icon."
-          value={avatarUrl}
-          onChange={(e) => setAvatarUrl(e.target.value)}
-        />
-
-        <Input
-          type="textarea"
-          label="Welcome message"
-          placeholder="Hello! How can I assist you today?"
-          rows={3}
-          value={welcomeMessage}
-          onChange={(e) => setWelcomeMessage(e.target.value)}
-        />
-
-        <button
-          onClick={save}
-          disabled={saving || saved}
-          className={`flex cursor-pointer items-center gap-1.5 rounded-xl px-5 py-2.5 text-xs font-semibold shadow-sm transition disabled:opacity-50 ${
-            saved ? "bg-emerald-500 text-white" : "bg-slate-900 text-white hover:bg-slate-800"
-          }`}
-        >
-          {saved ? <Check size={13} /> : <Save size={13} />}
-          {saved ? "Saved!" : saving ? "Saving…" : "Save appearance"}
-        </button>
-      </div>
-
-      {/* Live preview */}
       <div>
-        <span className="mb-3 block text-xs font-semibold font-title uppercase tracking-widest text-slate-400">
+        <span className="mb-3 block font-title text-xs font-semibold uppercase tracking-widest text-muted-foreground">
           Live preview
         </span>
-        <div className="overflow-hidden rounded-2xl border border-slate-200 shadow-lg">
-          {/* Header */}
+        <div className="overflow-hidden rounded-2xl border border-border shadow-lg">
           <div className="flex items-center gap-3 bg-[#0d0d12] px-4 py-4 text-white">
             <div
               className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full"
@@ -137,20 +143,15 @@ export const AppearanceForm = ({ bot }: { bot: SerializedBot }) => {
             </div>
           </div>
 
-          {/* Body */}
           <div className="space-y-3 bg-[#faf8f4] px-4 py-5" style={{ minHeight: 180 }}>
             <div className="max-w-[82%] rounded-2xl rounded-bl-sm bg-white px-3.5 py-2.5 text-[13.5px] text-[#0d0d12] shadow-sm">
               {welcomeMessage || "Hello! How can I assist you today?"}
             </div>
-            <div
-              className="ml-auto max-w-[82%] rounded-2xl rounded-br-sm px-3.5 py-2.5 text-[13.5px] text-white"
-              style={{ background: "#0d0d12" }}
-            >
+            <div className="ml-auto max-w-[82%] rounded-2xl rounded-br-sm bg-[#0d0d12] px-3.5 py-2.5 text-[13.5px] text-white">
               Hi! I have a question about my order.
             </div>
           </div>
 
-          {/* Footer */}
           <div className="flex items-center gap-2 border-t border-black/5 bg-[#f7f5f0] px-3 py-3">
             <div className="flex-1 rounded-xl border border-black/10 bg-[#faf8f4] px-3 py-2 text-[13px] text-[#9b9691]">
               Ask anything…

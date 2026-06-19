@@ -1,8 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { FileText, Link2, Loader2, Plus, Trash2, Upload } from "lucide-react";
 import { apiClient } from "@/lib/axios";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 
 interface DocItem {
   _id: string;
@@ -15,16 +22,16 @@ interface DocItem {
 
 type SourceTab = "text" | "url" | "file";
 
-const TABS: { id: SourceTab; icon: React.ReactNode }[] = [
-  { id: "text", icon: <FileText size={13} /> },
-  { id: "url", icon: <Link2 size={13} /> },
-  { id: "file", icon: <Upload size={13} /> },
+const TABS: { id: SourceTab; icon: React.ReactNode; label: string }[] = [
+  { id: "text", icon: <FileText size={13} />, label: "Text" },
+  { id: "url", icon: <Link2 size={13} />, label: "URL" },
+  { id: "file", icon: <Upload size={13} />, label: "File" },
 ];
 
 const statusStyles: Record<DocItem["status"], string> = {
-  ready: "border-emerald-200 bg-emerald-50 text-emerald-600",
-  processing: "border-amber-200 bg-amber-50 text-amber-600",
-  error: "border-rose-200 bg-rose-50 text-rose-600",
+  ready: "border-emerald-300 bg-emerald-50 text-emerald-700",
+  processing: "border-amber-300 bg-amber-50 text-amber-700",
+  error: "border-destructive/30 bg-destructive/10 text-destructive",
 };
 
 export const KnowledgeManager = ({ botId }: { botId: string }) => {
@@ -37,7 +44,6 @@ export const KnowledgeManager = ({ botId }: { botId: string }) => {
   const [file, setFile] = useState<File | null>(null);
   const [fileKey, setFileKey] = useState(0);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
 
   const loadDocs = async () => {
     try {
@@ -56,11 +62,9 @@ export const KnowledgeManager = ({ botId }: { botId: string }) => {
   }, [botId]);
 
   const add = async () => {
-    setError("");
     setSubmitting(true);
     try {
       let data: { success?: boolean; message?: string };
-
       if (tab === "file") {
         if (!file) {
           setSubmitting(false);
@@ -90,15 +94,16 @@ export const KnowledgeManager = ({ botId }: { botId: string }) => {
         setUrl("");
         setFile(null);
         setFileKey((k) => k + 1);
+        toast.success("Added to knowledge base");
         await loadDocs();
       } else {
-        setError(data.message || "Failed to add document.");
+        toast.error(data.message || "Could not add document.");
       }
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        "Failed to add document.";
-      setError(message);
+        "Could not add document.";
+      toast.error(message);
     } finally {
       setSubmitting(false);
     }
@@ -108,8 +113,10 @@ export const KnowledgeManager = ({ botId }: { botId: string }) => {
     try {
       await apiClient.delete(`/api/chatbots/${botId}/documents/${id}`);
       setDocuments((docs) => docs.filter((d) => d._id !== id));
+      toast.success("Document removed");
     } catch (err) {
       console.log(err);
+      toast.error("Could not remove document.");
     }
   };
 
@@ -117,66 +124,65 @@ export const KnowledgeManager = ({ botId }: { botId: string }) => {
     tab === "file" ? !!file : tab === "url" ? url.trim().length > 0 : content.trim().length > 0;
 
   return (
-    <div className="grid gap-8 lg:grid-cols-2">
-      {/* Add form */}
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-base font-bold tracking-tight text-slate-900">Add knowledge</h2>
-        <p className="mt-1 text-sm text-slate-500">
-          Paste text, import a page, or upload a file (PDF, Word, TXT). It&apos;s embedded and used
-          to ground answers.
-        </p>
+    <div className="grid gap-6 lg:grid-cols-2">
+      <Card>
+        <CardHeader>
+          <CardTitle>Add knowledge</CardTitle>
+          <CardDescription>
+            Paste text, import a page, or upload a file (PDF, Word, TXT). It&apos;s embedded and
+            used to ground answers.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex gap-2">
+            {TABS.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setTab(t.id)}
+                className={cn(
+                  "flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold transition",
+                  tab === t.id
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {t.icon}
+                {t.label}
+              </button>
+            ))}
+          </div>
 
-        <div className="mt-5 flex gap-2">
-          {TABS.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={`flex cursor-pointer items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold capitalize transition ${
-                tab === t.id
-                  ? "border-slate-900 bg-slate-900 text-white"
-                  : "border-slate-200 text-slate-500 hover:border-slate-300"
-              }`}
-            >
-              {t.icon}
-              {t.id}
-            </button>
-          ))}
-        </div>
-
-        <div className="mt-4 space-y-3">
-          <input
+          <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Title (optional)"
-            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 outline-none transition focus:ring-2 focus:ring-slate-900/10"
           />
 
           {tab === "url" && (
-            <input
+            <Input
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://docs.example.com/faq"
-              className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 outline-none transition focus:ring-2 focus:ring-slate-900/10"
             />
           )}
 
           {tab === "text" && (
-            <textarea
+            <Textarea
+              rows={6}
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              rows={6}
               placeholder="Paste FAQs, policies, product details…"
-              className="w-full resize-none rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 outline-none transition focus:ring-2 focus:ring-slate-900/10"
             />
           )}
 
           {tab === "file" && (
-            <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center transition hover:border-slate-400">
-              <Upload size={20} className="text-slate-400" />
-              <span className="text-sm font-medium text-slate-700">
+            <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-muted/40 px-4 py-8 text-center transition hover:border-muted-foreground/40">
+              <Upload size={20} className="text-muted-foreground" />
+              <span className="text-sm font-medium">
                 {file ? file.name : "Choose a file to upload"}
               </span>
-              <span className="text-[11px] text-slate-400">PDF, DOCX, TXT, MD or CSV</span>
+              <span className="text-[11px] text-muted-foreground">PDF, DOCX, TXT, MD or CSV</span>
               <input
                 key={fileKey}
                 type="file"
@@ -187,56 +193,54 @@ export const KnowledgeManager = ({ botId }: { botId: string }) => {
             </label>
           )}
 
-          {error && <p className="text-xs text-rose-500">{error}</p>}
-
-          <button
-            onClick={add}
-            disabled={submitting || !canSubmit}
-            className="flex cursor-pointer items-center gap-1.5 rounded-xl bg-slate-900 px-5 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-slate-800 disabled:opacity-50"
-          >
-            {submitting ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
+          <Button onClick={add} disabled={submitting || !canSubmit}>
+            {submitting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Plus className="h-4 w-4" />
+            )}
             {submitting ? "Indexing…" : "Add to knowledge base"}
-          </button>
-        </div>
-      </div>
+          </Button>
+        </CardContent>
+      </Card>
 
-      {/* Document list */}
       <div>
-        <span className="mb-3 block font-title text-xs font-semibold uppercase tracking-widest text-slate-400">
+        <span className="mb-3 block font-title text-xs font-semibold uppercase tracking-widest text-muted-foreground">
           Documents
         </span>
         {loading ? (
-          <p className="text-sm text-slate-400">Loading…</p>
+          <p className="text-sm text-muted-foreground">Loading…</p>
         ) : documents.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-10 text-center text-sm text-slate-400">
-            No documents yet.
-          </div>
+          <Card className="border-dashed">
+            <CardContent className="py-10 text-center text-sm text-muted-foreground">
+              No documents yet.
+            </CardContent>
+          </Card>
         ) : (
           <div className="space-y-2">
             {documents.map((d) => (
-              <div
-                key={d._id}
-                className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-slate-800">{d.title}</p>
-                  <p className="text-[11px] text-slate-400">
-                    {d.sourceType} · {d.chunkCount} chunks
-                  </p>
-                </div>
-                <span
-                  className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold capitalize ${statusStyles[d.status]}`}
-                >
-                  {d.status}
-                </span>
-                <button
-                  onClick={() => remove(d._id)}
-                  className="cursor-pointer text-slate-300 transition hover:text-rose-500"
-                  aria-label="Delete document"
-                >
-                  <Trash2 size={15} />
-                </button>
-              </div>
+              <Card key={d._id}>
+                <CardContent className="flex items-center gap-3 py-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{d.title}</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {d.sourceType} · {d.chunkCount} chunks
+                    </p>
+                  </div>
+                  <Badge variant="outline" className={cn("capitalize", statusStyles[d.status])}>
+                    {d.status}
+                  </Badge>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                    onClick={() => remove(d._id)}
+                    aria-label="Delete document"
+                  >
+                    <Trash2 size={15} />
+                  </Button>
+                </CardContent>
+              </Card>
             ))}
           </div>
         )}

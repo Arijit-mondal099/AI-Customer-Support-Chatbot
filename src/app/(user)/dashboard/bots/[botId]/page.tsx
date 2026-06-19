@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
-import { MessageSquare, Users, Clock } from "lucide-react";
+import { Clock, MessageSquare, Users } from "lucide-react";
 import { requireOwner } from "@/lib/auth";
 import { getChatbot } from "@/lib/chatbots";
 import { ConversationModel } from "@/models/conversation.model";
 import { MessageModel } from "@/models/message.model";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const formatDate = (iso: string | null) =>
   iso
@@ -44,43 +45,46 @@ export default async function BotOverview({ params }: { params: Promise<{ botId:
     { label: "Business", value: bot.businessInfo.businessName || "—" },
     { label: "Industry", value: bot.businessInfo.industry || "—" },
     { label: "Support email", value: bot.supportEmail || "—" },
+    { label: "Provider", value: bot.provider === "openai" ? "OpenAI" : "Google Gemini" },
+    { label: "API key", value: bot.hasApiKey ? bot.apiKeyMasked : "Account default" },
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="grid gap-4 sm:grid-cols-3">
         {stats.map((s) => {
           const Icon = s.icon;
           return (
-            <div
-              key={s.label}
-              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
-            >
-              <div className="flex items-center gap-2 text-slate-400">
-                <Icon size={15} />
-                <span className="text-xs font-semibold font-title uppercase tracking-widest">
+            <Card key={s.label}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
                   {s.label}
-                </span>
-              </div>
-              <p className="mt-2 text-2xl font-bold tracking-tight text-slate-900">{s.value}</p>
-            </div>
+                </CardTitle>
+                <Icon className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold tracking-tight">{s.value}</div>
+              </CardContent>
+            </Card>
           );
         })}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        {details.map((it) => (
-          <div
-            key={it.label}
-            className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
-          >
-            <p className="text-xs font-semibold font-title uppercase tracking-widest text-slate-400">
-              {it.label}
-            </p>
-            <p className="mt-1.5 truncate text-sm font-medium text-slate-800">{it.value}</p>
-          </div>
-        ))}
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Details</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <dl className="divide-y divide-border">
+            {details.map((it) => (
+              <div key={it.label} className="flex items-center justify-between gap-4 py-2.5">
+                <dt className="text-sm text-muted-foreground">{it.label}</dt>
+                <dd className="truncate text-sm font-medium">{it.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </CardContent>
+      </Card>
     </div>
   );
 }

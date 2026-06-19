@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 const buildTabs = (botId: string) => [
   { label: "Overview", href: `/dashboard/bots/${botId}`, exact: true },
@@ -16,7 +17,7 @@ export const TabBar = ({ botId }: { botId: string }) => {
   const pathname = usePathname();
 
   return (
-    <nav className="flex gap-1 overflow-x-auto border-b border-slate-200">
+    <nav className="flex gap-1 overflow-x-auto border-b border-border">
       {buildTabs(botId).map((t) => {
         const active = t.exact
           ? pathname === t.href
@@ -25,13 +26,15 @@ export const TabBar = ({ botId }: { botId: string }) => {
           <Link
             key={t.href}
             href={t.href}
-            className={`-mb-px whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition ${
-              active
-                ? "border-slate-900 text-slate-900"
-                : "border-transparent text-slate-400 hover:text-slate-600"
-            }`}
+            className={cn(
+              "relative whitespace-nowrap px-3.5 py-2.5 text-sm font-medium transition",
+              active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+            )}
           >
             {t.label}
+            {active && (
+              <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-primary" />
+            )}
           </Link>
         );
       })}

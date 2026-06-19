@@ -1,15 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Eye, EyeOff, KeyRound, Save } from "lucide-react";
+import { toast } from "sonner";
+import { Eye, EyeOff, Loader2, Save } from "lucide-react";
 import { apiClient } from "@/lib/axios";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 type Provider = "gemini" | "openai";
-
-const PROVIDERS: { id: Provider; label: string }[] = [
-  { id: "gemini", label: "Google Gemini" },
-  { id: "openai", label: "OpenAI" },
-];
 
 export const AccountForm = () => {
   const [email, setEmail] = useState("");
@@ -19,7 +20,6 @@ export const AccountForm = () => {
   const [hasKey, setHasKey] = useState(false);
   const [show, setShow] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -43,107 +43,94 @@ export const AccountForm = () => {
     try {
       const { data } = await apiClient.put("/api/account", { provider, apiKey });
       if (data.success) {
-        setSaved(true);
-        setTimeout(() => setSaved(false), 2500);
         setMaskedKey(data.account.apiKeyMasked);
         setHasKey(data.account.hasApiKey);
         setApiKey("");
+        toast.success("Account updated");
+      } else {
+        toast.error(data.message || "Could not save.");
       }
-    } catch (error) {
-      console.log(error);
+    } catch {
+      toast.error("Could not save.");
     } finally {
       setSaving(false);
     }
   };
 
-  const providerLabel = PROVIDERS.find((p) => p.id === provider)?.label ?? "Gemini";
+  const providerLabel = provider === "openai" ? "OpenAI" : "Google Gemini";
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-10">
-      <header className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Account</h1>
-        <p className="mt-1 text-sm text-slate-400">
-          Choose your AI provider and key — they&apos;re shared across all of your chatbots.
+    <div className="mx-auto max-w-2xl space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Account</h1>
+        <p className="text-sm text-muted-foreground">
+          Your default AI provider and key, shared by agents without their own key.
         </p>
-      </header>
+      </div>
 
-      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-100 px-6 py-5">
-          <span className="text-xs font-semibold text-slate-500">Signed in as</span>
-          <p className="mt-1 text-sm font-medium text-slate-800">{email || "…"}</p>
-        </div>
-
-        <div className="space-y-5 px-6 py-6">
-          {/* Provider selector */}
-          <div>
-            <span className="mb-2 block text-xs font-bold font-title uppercase tracking-widest text-slate-600">
-              AI provider
-            </span>
-            <div className="grid grid-cols-2 gap-2">
-              {PROVIDERS.map((p) => (
+      <Card>
+        <CardHeader>
+          <CardTitle>AI provider</CardTitle>
+          <CardDescription>Signed in as {email || "…"}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <div className="space-y-1.5">
+            <Label>Provider</Label>
+            <div className="grid max-w-sm grid-cols-2 gap-2">
+              {(["gemini", "openai"] as const).map((p) => (
                 <button
-                  key={p.id}
-                  onClick={() => setProvider(p.id)}
-                  className={`cursor-pointer rounded-xl border px-4 py-3 text-sm font-medium transition ${
-                    provider === p.id
-                      ? "border-slate-900 bg-slate-900 text-white"
-                      : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
-                  }`}
+                  key={p}
+                  type="button"
+                  onClick={() => setProvider(p)}
+                  className={cn(
+                    "cursor-pointer rounded-lg border px-4 py-2.5 text-sm font-medium transition",
+                    provider === p
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border bg-background hover:bg-muted",
+                  )}
                 >
-                  {p.label}
+                  {p === "gemini" ? "Google Gemini" : "OpenAI"}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* API key */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2.5">
-              <KeyRound size={14} className="text-slate-500" />
-              <span className="text-xs font-bold font-title uppercase tracking-widest text-slate-600">
-                {providerLabel} API key
-              </span>
-            </div>
-
+          <div className="space-y-1.5">
+            <Label htmlFor="accountKey">{providerLabel} API key</Label>
             {hasKey && (
-              <p className="font-mono text-xs text-slate-400">
-                Current key: <span className="text-slate-600">{maskedKey}</span>
+              <p className="font-mono text-xs text-muted-foreground">
+                Current: <span className="text-foreground">{maskedKey}</span>
               </p>
             )}
-
-            <div className="relative">
-              <input
+            <div className="relative max-w-md">
+              <Input
+                id="accountKey"
                 type={show ? "text" : "password"}
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
                 placeholder={
-                  hasKey ? "Enter a new key to replace" : `Paste your ${providerLabel} API key`
+                  hasKey ? "Enter a new key to replace" : `Paste your ${providerLabel} key`
                 }
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-4 pr-10 font-mono text-sm text-slate-700 outline-none transition focus:border-slate-300 focus:ring-2 focus:ring-slate-900/10"
+                className="pr-10 font-mono"
               />
               <button
+                type="button"
                 onClick={() => setShow((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-slate-400 transition hover:text-slate-700"
+                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-muted-foreground transition hover:text-foreground"
               >
                 {show ? <EyeOff size={15} /> : <Eye size={15} />}
               </button>
             </div>
           </div>
-        </div>
 
-        <div className="flex justify-end border-t border-slate-100 px-6 py-4">
-          <button
-            onClick={save}
-            disabled={saving || saved || !apiKey.trim()}
-            className={`flex cursor-pointer items-center gap-1.5 rounded-xl px-5 py-2.5 text-xs font-semibold shadow-sm transition disabled:opacity-50 ${
-              saved ? "bg-emerald-500 text-white" : "bg-slate-900 text-white hover:bg-slate-800"
-            }`}
-          >
-            {saved ? <Check size={13} /> : <Save size={13} />}
-            {saved ? "Saved!" : saving ? "Saving…" : "Save"}
-          </button>
-        </div>
-      </div>
+          <div className="flex justify-end border-t border-border pt-4">
+            <Button onClick={save} disabled={saving || !apiKey.trim()}>
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              Save
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
