@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { motion } from "motion/react";
 import { Loader2, Save, Send } from "lucide-react";
 import { apiClient } from "@/lib/axios";
 import type { SerializedBot } from "@/lib/chatbots";
@@ -41,69 +42,88 @@ export const AppearanceForm = ({ bot }: { bot: SerializedBot }) => {
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
-      <Card>
-        <CardHeader>
-          <CardTitle>Appearance</CardTitle>
-          <CardDescription>Customize how the chat widget looks on your site.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="accent">Accent color</Label>
-            <div className="flex items-center gap-3">
-              <input
-                id="accent"
-                type="color"
-                value={accentColor}
-                onChange={(e) => setAccentColor(e.target.value)}
-                className="h-9 w-12 cursor-pointer rounded-md border border-border bg-background p-1"
-              />
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+      className="grid gap-6 lg:grid-cols-2"
+    >
+      <motion.div
+        variants={{
+          hidden: { opacity: 0, x: -20 },
+          visible: { opacity: 1, x: 0 },
+        }}
+        transition={{ type: "spring", bounce: 0.3, duration: 0.5 }}
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle>Appearance</CardTitle>
+            <CardDescription>Customize how the chat widget looks on your site.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="accent">Accent color</Label>
+              <div className="flex items-center gap-3">
+                <input
+                  id="accent"
+                  type="color"
+                  value={accentColor}
+                  onChange={(e) => setAccentColor(e.target.value)}
+                  className="h-9 w-12 cursor-pointer rounded-md border border-border bg-background p-1"
+                />
+                <Input
+                  value={accentColor}
+                  onChange={(e) => setAccentColor(e.target.value)}
+                  className="w-32 font-mono"
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="displayName">Display name</Label>
               <Input
-                value={accentColor}
-                onChange={(e) => setAccentColor(e.target.value)}
-                className="w-32 font-mono"
+                id="displayName"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="Support Agent"
               />
             </div>
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="displayName">Display name</Label>
-            <Input
-              id="displayName"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="Support Agent"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="avatarUrl">Avatar image URL</Label>
-            <Input
-              id="avatarUrl"
-              type="url"
-              value={avatarUrl}
-              onChange={(e) => setAvatarUrl(e.target.value)}
-              placeholder="https://…/avatar.png"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="welcome">Welcome message</Label>
-            <Textarea
-              id="welcome"
-              rows={3}
-              value={welcomeMessage}
-              onChange={(e) => setWelcomeMessage(e.target.value)}
-              placeholder="Hello! How can I assist you today?"
-            />
-          </div>
-          <div className="flex justify-end border-t border-border pt-4">
-            <Button onClick={save} disabled={saving}>
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-              Save appearance
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+            <div className="space-y-1.5">
+              <Label htmlFor="avatarUrl">Avatar image URL</Label>
+              <Input
+                id="avatarUrl"
+                type="url"
+                value={avatarUrl}
+                onChange={(e) => setAvatarUrl(e.target.value)}
+                placeholder="https://…/avatar.png"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="welcome">Welcome message</Label>
+              <Textarea
+                id="welcome"
+                rows={3}
+                value={welcomeMessage}
+                onChange={(e) => setWelcomeMessage(e.target.value)}
+                placeholder="Hello! How can I assist you today?"
+              />
+            </div>
+            <div className="flex justify-end border-t border-border pt-4">
+              <Button onClick={save} disabled={saving}>
+                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                Save appearance
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
 
-      <div>
+      <motion.div
+        variants={{
+          hidden: { opacity: 0, x: 20 },
+          visible: { opacity: 1, x: 0 },
+        }}
+        transition={{ type: "spring", bounce: 0.3, duration: 0.5 }}
+      >
         <span className="mb-3 block font-title text-xs font-semibold uppercase tracking-widest text-muted-foreground">
           Live preview
         </span>
@@ -164,7 +184,7 @@ export const AppearanceForm = ({ bot }: { bot: SerializedBot }) => {
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };

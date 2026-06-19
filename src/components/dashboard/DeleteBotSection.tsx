@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { motion } from "motion/react";
 import { AlertTriangle, Trash2 } from "lucide-react";
 import { apiClient } from "@/lib/axios";
 import { Button } from "@/components/ui/button";
@@ -41,7 +42,12 @@ export const DeleteBotSection = ({ botId, botName }: { botId: string; botName: s
   };
 
   return (
-    <Card className="mt-5 border-destructive/30">
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: "spring", bounce: 0.3, duration: 0.5, delay: 0.2 }}
+    >
+      <Card className="mt-5 border-destructive/30">
       <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
           <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
@@ -95,5 +101,6 @@ export const DeleteBotSection = ({ botId, botName }: { botId: string; botName: s
         </AlertDialogContent>
       </AlertDialog>
     </Card>
+    </motion.div>
   );
 };
