@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Blocks, Bot, LayoutDashboard, LogOut, Settings } from "lucide-react";
+import { Blocks, Bot, LayoutDashboard, Settings } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -16,13 +16,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const nav = [
   {
@@ -45,9 +38,8 @@ const nav = [
   },
 ];
 
-export function AppSidebar({ email, agentCount }: { email: string; agentCount: number }) {
+export function AppSidebar({ agentCount }: { agentCount: number }) {
   const pathname = usePathname();
-  const initial = (email?.[0] ?? "U").toUpperCase();
 
   return (
     <Sidebar collapsible="icon">
@@ -101,27 +93,6 @@ export function AppSidebar({ email, agentCount }: { email: string; agentCount: n
               <Settings />
               <span>Settings</span>
             </SidebarMenuButton>
-          </SidebarMenuItem>
-
-          <SidebarMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                render={
-                  <SidebarMenuButton tooltip={email} className="h-auto py-1.5">
-                    <Avatar className="h-6 w-6">
-                      <AvatarFallback className="bg-primary text-[11px] text-primary-foreground">
-                        {initial}
-                      </AvatarFallback>
-                    </Avatar>
-                  </SidebarMenuButton>
-                }
-              />
-              <DropdownMenuContent side="top" align="start" className="w-56">
-                <DropdownMenuItem render={<a href="/api/auth/logout" />}>
-                  <LogOut className="mr-2 h-4 w-4" /> Log out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

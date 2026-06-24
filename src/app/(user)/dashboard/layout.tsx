@@ -18,7 +18,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <SidebarProvider>
-      <AppSidebar email={owner.email} agentCount={bots.length} />
+      <AppSidebar agentCount={bots.length} />
       <SidebarInset>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border px-4">
           <SidebarTrigger className="-ml-1" />
