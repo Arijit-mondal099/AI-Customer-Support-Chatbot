@@ -33,28 +33,36 @@ const stripHtml = (html: string) =>
     .trim();
 
 export async function GET(_request: NextRequest, { params }: Params) {
-  const owner = await requireOwner();
-  if (!owner) return unauthorized();
+  try {
+    const owner = await requireOwner();
+    if (!owner) return unauthorized();
 
-  const { botId } = await params;
-  if (!isValidObjectId(botId)) return notFound();
+    const { botId } = await params;
+    if (!isValidObjectId(botId)) return notFound();
 
-  await db_connection();
-  const bot = await ChatbotModel.findOne({ _id: botId, ownerId: owner.ownerId }).select("_id");
-  if (!bot) return notFound();
+    await db_connection();
+    const bot = await ChatbotModel.findOne({ _id: botId, ownerId: owner.ownerId }).select("_id");
+    if (!bot) return notFound();
 
-  const documents = await DocumentModel.find({ botId }).sort({ createdAt: -1 }).lean();
-  return NextResponse.json({
-    success: true,
-    documents: documents.map((d) => ({
-      _id: String(d._id),
-      title: d.title,
-      sourceType: d.sourceType,
-      status: d.status,
-      chunkCount: d.chunkCount,
-      createdAt: d.createdAt ? new Date(d.createdAt).toISOString() : null,
-    })),
-  });
+    const documents = await DocumentModel.find({ botId }).sort({ createdAt: -1 }).lean();
+    return NextResponse.json({
+      success: true,
+      documents: documents.map((d) => ({
+        _id: String(d._id),
+        title: d.title,
+        sourceType: d.sourceType,
+        status: d.status,
+        chunkCount: d.chunkCount,
+        createdAt: d.createdAt ? new Date(d.createdAt).toISOString() : null,
+      })),
+    });
+  } catch (error) {
+    console.error("GET /documents failed", error);
+    return NextResponse.json(
+      { success: false, message: error instanceof Error ? error.message : "Internal server error" },
+      { status: 500 },
+    );
+  }
 }
 
 export async function POST(request: NextRequest, { params }: Params) {
