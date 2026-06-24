@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { motion } from "motion/react";
 import { Loader2, Save } from "lucide-react";
-import { apiClient } from "@/lib/axios";
 import type { SerializedBot } from "@/lib/chatbots";
+import { useUpdateBot } from "@/hooks/use-bots";
 import {
   defaultModel,
   INDUSTRIES,
@@ -32,7 +32,7 @@ import { cn } from "@/lib/utils";
 
 export const BotConfigForm = ({ bot }: { bot: SerializedBot }) => {
   const router = useRouter();
-  const [saving, setSaving] = useState(false);
+  const updateMutation = useUpdateBot(bot._id);
 
   const [name, setName] = useState(bot.name);
   const [status, setStatus] = useState<"draft" | "live">(bot.status);
@@ -54,9 +54,8 @@ export const BotConfigForm = ({ bot }: { bot: SerializedBot }) => {
   const toneOptions = withCurrent(TONES, personaInfo.communicationTone);
 
   const save = async () => {
-    setSaving(true);
     try {
-      const { data } = await apiClient.put(`/api/chatbots/${bot._id}`, {
+      const data = await updateMutation.mutateAsync({
         name,
         status,
         supportEmail,
@@ -66,21 +65,15 @@ export const BotConfigForm = ({ bot }: { bot: SerializedBot }) => {
         businessInfo,
         botInfo: personaInfo,
       });
-      if (data.success) {
-        if (data.bot) {
-          setMaskedKey(data.bot.apiKeyMasked);
-          setHasKey(data.bot.hasApiKey);
-        }
-        setApiKey("");
-        toast.success("Changes saved");
-        router.refresh();
-      } else {
-        toast.error(data.message || "Could not save changes.");
+      if (data.bot) {
+        setMaskedKey(data.bot.apiKeyMasked);
+        setHasKey(data.bot.hasApiKey);
       }
+      setApiKey("");
+      toast.success("Changes saved");
+      router.refresh();
     } catch {
       toast.error("Could not save changes.");
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -345,8 +338,8 @@ export const BotConfigForm = ({ bot }: { bot: SerializedBot }) => {
         {!hasKey && !apiKey.trim() && (
           <span className="text-xs text-destructive">An API key is required.</span>
         )}
-        <Button onClick={save} disabled={saving || (!hasKey && !apiKey.trim())}>
-          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+        <Button onClick={save} disabled={updateMutation.isPending || (!hasKey && !apiKey.trim())}>
+          {updateMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           Save changes
         </Button>
       </motion.div>

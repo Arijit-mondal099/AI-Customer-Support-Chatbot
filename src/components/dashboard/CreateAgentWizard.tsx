@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowLeft, ArrowRight, Check, ChevronLeft, ChevronRight, Loader2, Sparkles } from "lucide-react";
-import { apiClient } from "@/lib/axios";
 import { defaultModel, INDUSTRIES, MODELS, PROVIDERS, type Provider, TONES } from "@/lib/options";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,13 +20,14 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { useCreateBot } from "@/hooks/use-bots";
 
 const STEPS = ["Basics", "Persona", "Model & key", "Review"];
 
 export function CreateAgentWizard() {
   const router = useRouter();
   const [step, setStep] = useState(0);
-  const [creating, setCreating] = useState(false);
+  const createMutation = useCreateBot();
 
   const [name, setName] = useState("");
   const [businessName, setBusinessName] = useState("");
@@ -57,9 +57,8 @@ export function CreateAgentWizard() {
           : true;
 
   const create = async () => {
-    setCreating(true);
     try {
-      const { data } = await apiClient.post("/api/chatbots", {
+      const data = await createMutation.mutateAsync({
         name,
         status: makeLive ? "live" : "draft",
         supportEmail,
@@ -69,17 +68,11 @@ export function CreateAgentWizard() {
         businessInfo: { businessName, industry, description },
         botInfo: { botName, communicationTone: tone, personalityDescription: personality },
       });
-      if (data.success) {
-        toast.success("Agent created", { description: "Add knowledge to make it smarter." });
-        router.push(`/dashboard/bots/${data.bot._id}`);
-        router.refresh();
-        return;
-      }
-      toast.error(data.message || "Could not create agent.");
+      toast.success("Agent created", { description: "Add knowledge to make it smarter." });
+      router.push(`/dashboard/bots/${data.bot._id}`);
+      router.refresh();
     } catch {
       toast.error("Could not create agent.");
-    } finally {
-      setCreating(false);
     }
   };
 
@@ -375,7 +368,7 @@ export function CreateAgentWizard() {
           <Button
             variant="outline"
             onClick={() => setStep((s) => Math.max(0, s - 1))}
-            disabled={step === 0 || creating}
+            disabled={step === 0 || createMutation.isPending}
           >
             <ArrowLeft className="h-4 w-4" /> Back
           </Button>
@@ -388,8 +381,8 @@ export function CreateAgentWizard() {
           </motion.div>
         ) : (
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-            <Button onClick={create} disabled={creating}>
-              {creating ? (
+            <Button onClick={create} disabled={createMutation.isPending}>
+              {createMutation.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <Sparkles className="h-4 w-4" />

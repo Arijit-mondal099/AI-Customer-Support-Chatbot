@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { motion } from "motion/react";
 import { AlertTriangle, Trash2 } from "lucide-react";
-import { apiClient } from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -18,27 +17,22 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useDeleteBot } from "@/hooks/use-bots";
 
 export const DeleteBotSection = ({ botId, botName }: { botId: string; botName: string }) => {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+  const deleteMutation = useDeleteBot();
 
   const handleDelete = async () => {
-    setDeleting(true);
     try {
-      const { data } = await apiClient.delete(`/api/chatbots/${botId}`);
-      if (data.success) {
-        toast.success("Agent deleted");
-        router.push("/dashboard/agents");
-        router.refresh();
-        return;
-      }
-      toast.error(data.message || "Could not delete agent.");
+      await deleteMutation.mutateAsync(botId);
+      toast.success("Agent deleted");
+      router.push("/dashboard/agents");
+      router.refresh();
     } catch {
       toast.error("Could not delete agent.");
     }
-    setDeleting(false);
   };
 
   return (
@@ -74,7 +68,7 @@ export const DeleteBotSection = ({ botId, botName }: { botId: string; botName: s
       <AlertDialog
         open={open}
         onOpenChange={(o) => {
-          if (!deleting) setOpen(o);
+          if (!deleteMutation.isPending) setOpen(o);
         }}
       >
         <AlertDialogContent>
@@ -86,16 +80,16 @@ export const DeleteBotSection = ({ botId, botName }: { botId: string; botName: s
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault();
                 handleDelete();
               }}
-              disabled={deleting}
+              disabled={deleteMutation.isPending}
               className="bg-destructive text-white hover:bg-destructive/90"
             >
-              {deleting ? "Deleting…" : "Delete"}
+              {deleteMutation.isPending ? "Deleting…" : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

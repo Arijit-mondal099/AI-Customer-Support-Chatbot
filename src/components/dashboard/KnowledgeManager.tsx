@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { motion } from "motion/react";
 import { FileText, Link2, Loader2, Plus, Trash2, Upload } from "lucide-react";
-import { apiClient } from "@/lib/axios";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,15 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-
-interface DocItem {
-  _id: string;
-  title: string;
-  sourceType: "file" | "url" | "text";
-  status: "processing" | "ready" | "error";
-  chunkCount: number;
-  createdAt: string | null;
-}
+import { useDocuments, useAddDocument, useDeleteDocument } from "@/hooks/use-documents";
 
 type SourceTab = "text" | "url" | "file";
 
@@ -30,94 +21,60 @@ const TABS: { id: SourceTab; icon: React.ReactNode; label: string }[] = [
   { id: "file", icon: <Upload size={13} />, label: "File" },
 ];
 
-const statusStyles: Record<DocItem["status"], string> = {
+const statusStyles: Record<string, string> = {
   ready: "border-emerald-300 bg-emerald-50 text-emerald-700",
   processing: "border-amber-300 bg-amber-50 text-amber-700",
   error: "border-destructive/30 bg-destructive/10 text-destructive",
 };
 
 export const KnowledgeManager = ({ botId }: { botId: string }) => {
-  const [documents, setDocuments] = useState<DocItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: documents, isLoading } = useDocuments(botId);
+  const addMutation = useAddDocument(botId);
+  const deleteMutation = useDeleteDocument(botId);
+
   const [tab, setTab] = useState<SourceTab>("text");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [url, setUrl] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [fileKey, setFileKey] = useState(0);
-  const [submitting, setSubmitting] = useState(false);
-
-  const loadDocs = async () => {
-    try {
-      const { data } = await apiClient.get(`/api/chatbots/${botId}/documents`);
-      if (data.success) setDocuments(data.documents);
-    } catch (err) {
-      console.log(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadDocs();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [botId]);
 
   const add = async () => {
-    setSubmitting(true);
     try {
-      let data: { success?: boolean; message?: string };
+      let payload: FormData | { sourceType: "url"; title: string; url: string } | { sourceType: "text"; title: string; content: string };
       if (tab === "file") {
-        if (!file) {
-          setSubmitting(false);
-          return;
-        }
+        if (!file) return;
         const form = new FormData();
         form.append("file", file);
         if (title.trim()) form.append("title", title.trim());
-        const res = await fetch(`/api/chatbots/${botId}/documents`, {
-          method: "POST",
-          body: form,
-          credentials: "include",
-        });
-        data = await res.json();
+        payload = form;
+      } else if (tab === "url") {
+        payload = { sourceType: "url", title, url };
       } else {
-        const payload =
-          tab === "url"
-            ? { sourceType: "url", title, url }
-            : { sourceType: "text", title, content };
-        const resp = await apiClient.post(`/api/chatbots/${botId}/documents`, payload);
-        data = resp.data;
+        payload = { sourceType: "text", title, content };
       }
 
-      if (data.success) {
-        setTitle("");
-        setContent("");
-        setUrl("");
-        setFile(null);
-        setFileKey((k) => k + 1);
-        toast.success("Added to knowledge base");
-        await loadDocs();
-      } else {
+      const data = await addMutation.mutateAsync(payload);
+      if (!data.success) {
         toast.error(data.message || "Could not add document.");
+        return;
       }
-    } catch (err: unknown) {
-      const message =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        "Could not add document.";
-      toast.error(message);
-    } finally {
-      setSubmitting(false);
+      setTitle("");
+      setContent("");
+      setUrl("");
+      setFile(null);
+      setFileKey((k) => k + 1);
+      toast.success("Added to knowledge base");
+    } catch {
+      toast.error("Could not add document.");
     }
   };
 
   const remove = async (id: string) => {
     try {
-      await apiClient.delete(`/api/chatbots/${botId}/documents/${id}`);
-      setDocuments((docs) => docs.filter((d) => d._id !== id));
+      await deleteMutation.mutateAsync(id);
       toast.success("Document removed");
-    } catch (err) {
-      console.log(err);
+    } catch {
       toast.error("Could not remove document.");
     }
   };
@@ -195,13 +152,13 @@ export const KnowledgeManager = ({ botId }: { botId: string }) => {
             </label>
           )}
 
-          <Button onClick={add} disabled={submitting || !canSubmit}>
-            {submitting ? (
+          <Button onClick={add} disabled={addMutation.isPending || !canSubmit}>
+            {addMutation.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <Plus className="h-4 w-4" />
             )}
-            {submitting ? "Indexing…" : "Add to knowledge base"}
+            {addMutation.isPending ? "Indexing…" : "Add to knowledge base"}
           </Button>
         </CardContent>
       </Card>
@@ -210,7 +167,7 @@ export const KnowledgeManager = ({ botId }: { botId: string }) => {
         <span className="mb-3 block font-title text-xs font-semibold uppercase tracking-widest text-muted-foreground">
           Documents
         </span>
-        {loading ? (
+        {isLoading ? (
           <div className="space-y-2">
             {Array.from({ length: 3 }).map((_, i) => (
               <Card key={i}>
@@ -224,7 +181,7 @@ export const KnowledgeManager = ({ botId }: { botId: string }) => {
               </Card>
             ))}
           </div>
-        ) : documents.length === 0 ? (
+        ) : !documents || documents.length === 0 ? (
           <Card className="border-dashed">
             <CardContent className="py-10 text-center text-sm text-muted-foreground">
               No documents yet.

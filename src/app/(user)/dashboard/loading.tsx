@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 const pulse = {
   animate: {
     opacity: [0.4, 0.7, 0.4],
-    transition: { repeat: Infinity, duration: 1.8, ease: "easeInOut" },
+    transition: { repeat: Infinity, duration: 1.8, ease: "easeInOut" as const },
   },
 };
 

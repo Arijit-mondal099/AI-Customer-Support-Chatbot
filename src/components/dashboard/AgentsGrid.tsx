@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import { Bot, ChevronRight, MoreVertical, Plus, Settings2, Trash2 } from "lucide-react";
 import type { SerializedBot } from "@/lib/chatbots";
-import { apiClient } from "@/lib/axios";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useDeleteBot } from "@/hooks/use-bots";
 const NewAgentButton = () => (
   <Button render={<Link href="/dashboard/agents/new" />} nativeButton={false}>
     <Plus className="h-4 w-4" /> New agent
@@ -36,22 +36,17 @@ export function AgentsGrid({ bots }: { bots: SerializedBot[] }) {
   const router = useRouter();
   const [items, setItems] = useState(bots);
   const [pending, setPending] = useState<SerializedBot | null>(null);
-  const [deleting, setDeleting] = useState(false);
+  const deleteMutation = useDeleteBot();
 
   const confirmDelete = async () => {
     if (!pending) return;
-    setDeleting(true);
     try {
-      const { data } = await apiClient.delete(`/api/chatbots/${pending._id}`);
-      if (data.success) {
-        setItems((prev) => prev.filter((b) => b._id !== pending._id));
-        setPending(null);
-        router.refresh();
-      }
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setDeleting(false);
+      await deleteMutation.mutateAsync(pending._id);
+      setItems((prev) => prev.filter((b) => b._id !== pending._id));
+      setPending(null);
+      router.refresh();
+    } catch {
+      console.log("Failed to delete bot");
     }
   };
 
@@ -164,7 +159,7 @@ export function AgentsGrid({ bots }: { bots: SerializedBot[] }) {
       <AlertDialog
         open={!!pending}
         onOpenChange={(open) => {
-          if (!open && !deleting) setPending(null);
+          if (!open && !deleteMutation.isPending) setPending(null);
         }}
       >
         <AlertDialogContent>
@@ -176,16 +171,16 @@ export function AgentsGrid({ bots }: { bots: SerializedBot[] }) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault();
                 confirmDelete();
               }}
-              disabled={deleting}
+              disabled={deleteMutation.isPending}
               className="bg-destructive text-white hover:bg-destructive/90"
             >
-              {deleting ? "Deleting…" : "Delete"}
+              {deleteMutation.isPending ? "Deleting…" : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

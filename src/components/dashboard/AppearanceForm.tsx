@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { motion } from "motion/react";
 import { Loader2, Save, Send } from "lucide-react";
-import { apiClient } from "@/lib/axios";
 import type { SerializedBot } from "@/lib/chatbots";
+import { useUpdateBot } from "@/hooks/use-bots";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 export const AppearanceForm = ({ bot }: { bot: SerializedBot }) => {
   const router = useRouter();
-  const [saving, setSaving] = useState(false);
+  const updateMutation = useUpdateBot(bot._id);
 
   const [accentColor, setAccentColor] = useState(bot.appearance.accentColor);
   const [avatarUrl, setAvatarUrl] = useState(bot.appearance.avatarUrl);
@@ -23,21 +23,14 @@ export const AppearanceForm = ({ bot }: { bot: SerializedBot }) => {
   const [welcomeMessage, setWelcomeMessage] = useState(bot.appearance.welcomeMessage);
 
   const save = async () => {
-    setSaving(true);
     try {
-      const { data } = await apiClient.put(`/api/chatbots/${bot._id}`, {
+      await updateMutation.mutateAsync({
         appearance: { accentColor, avatarUrl, displayName, welcomeMessage },
       });
-      if (data.success) {
-        toast.success("Appearance saved");
-        router.refresh();
-      } else {
-        toast.error(data.message || "Could not save.");
-      }
+      toast.success("Appearance saved");
+      router.refresh();
     } catch {
       toast.error("Could not save.");
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -108,8 +101,8 @@ export const AppearanceForm = ({ bot }: { bot: SerializedBot }) => {
               />
             </div>
             <div className="flex justify-end border-t border-border pt-4">
-              <Button onClick={save} disabled={saving}>
-                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              <Button onClick={save} disabled={updateMutation.isPending}>
+                {updateMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                 Save appearance
               </Button>
             </div>

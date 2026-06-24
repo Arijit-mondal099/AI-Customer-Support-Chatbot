@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { AlertTriangle, Bot, RotateCcw, Send } from "lucide-react";
-import { apiClient } from "@/lib/axios";
 import type { SerializedBot } from "@/lib/chatbots";
+import { useSendMessage } from "@/hooks/use-chat";
 import { MODELS, PROVIDERS } from "@/lib/options";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -21,9 +21,9 @@ export const AgentPlayground = ({ bot }: { bot: SerializedBot }) => {
   const welcome: Msg = { role: "model", text: bot.appearance.welcomeMessage || "Hello!" };
   const [messages, setMessages] = useState<Msg[]>([welcome]);
   const [input, setInput] = useState("");
-  const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
+  const sendMutation = useSendMessage();
 
   const providerLabel = PROVIDERS.find((p) => p.value === bot.provider)?.label ?? bot.provider;
   const modelLabel = MODELS[bot.provider]?.find((m) => m.value === bot.model)?.label || "Default";
@@ -31,7 +31,7 @@ export const AgentPlayground = ({ bot }: { bot: SerializedBot }) => {
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, sending]);
+  }, [messages, sendMutation.isPending]);
 
   const reset = () => {
     setMessages([welcome]);
@@ -40,31 +40,26 @@ export const AgentPlayground = ({ bot }: { bot: SerializedBot }) => {
 
   const send = async () => {
     const text = input.trim();
-    if (!text || sending) return;
+    if (!text || sendMutation.isPending) return;
     setError("");
     const history = messages.slice(1).map((m) => ({ role: m.role, text: m.text }));
     setMessages((prev) => [...prev, { role: "user", text }]);
     setInput("");
-    setSending(true);
     try {
-      const { data } = await apiClient.post("/api/chat", {
+      const data = await sendMutation.mutateAsync({
         botId: bot._id,
         prompt: text,
         preview: true,
         history,
       });
-      if (data.success) {
-        setMessages((prev) => [...prev, { role: "model", text: data.data.text }]);
+      if (data.success && data.data) {
+        const reply = data.data.text;
+        setMessages((prev) => [...prev, { role: "model", text: reply }]);
       } else {
         setError(data.message || "Something went wrong.");
       }
-    } catch (err: unknown) {
-      const message =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        "Request failed.";
-      setError(message);
-    } finally {
-      setSending(false);
+    } catch {
+      setError("Request failed.");
     }
   };
 
@@ -88,7 +83,7 @@ export const AgentPlayground = ({ bot }: { bot: SerializedBot }) => {
             </p>
           </div>
         </div>
-        <Button variant="ghost" size="sm" onClick={reset} disabled={sending}>
+        <Button variant="ghost" size="sm" onClick={reset} disabled={sendMutation.isPending}>
           <RotateCcw className="h-3.5 w-3.5" /> Reset
         </Button>
       </div>
@@ -115,7 +110,7 @@ export const AgentPlayground = ({ bot }: { bot: SerializedBot }) => {
           ))}
         </AnimatePresence>
 
-        {sending && (
+        {sendMutation.isPending && (
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -179,10 +174,10 @@ export const AgentPlayground = ({ bot }: { bot: SerializedBot }) => {
             }
           }}
           placeholder="Send a message to test your agent…"
-          disabled={sending}
+          disabled={sendMutation.isPending}
         />
         <motion.div whileTap={{ scale: 0.9 }}>
-          <Button onClick={send} disabled={sending || !input.trim()} size="icon">
+          <Button onClick={send} disabled={sendMutation.isPending || !input.trim()} size="icon">
             <Send className="h-4 w-4" />
           </Button>
         </motion.div>

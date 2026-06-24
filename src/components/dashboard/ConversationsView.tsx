@@ -1,27 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { motion } from "motion/react";
 import { MessageSquare } from "lucide-react";
-import { apiClient } from "@/lib/axios";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-
-interface ConversationItem {
-  _id: string;
-  sessionId: string;
-  messageCount: number;
-  startedAt: string | null;
-  lastMessageAt: string | null;
-}
-
-interface MessageItem {
-  _id: string;
-  role: "user" | "model";
-  text: string;
-  createdAt: string | null;
-}
+import {
+  useConversations,
+  useConversationThread,
+} from "@/hooks/use-conversations";
 
 const formatDate = (iso: string | null) =>
   iso
@@ -34,42 +22,12 @@ const formatDate = (iso: string | null) =>
     : "—";
 
 export const ConversationsView = ({ botId }: { botId: string }) => {
-  const [conversations, setConversations] = useState<ConversationItem[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
-  const [messages, setMessages] = useState<MessageItem[]>([]);
-  const [loadingList, setLoadingList] = useState(true);
-  const [loadingThread, setLoadingThread] = useState(false);
+  const { data: conversations, isLoading } = useConversations(botId);
+  const { data: messages, isLoading: threadLoading } =
+    useConversationThread(botId, selected);
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const { data } = await apiClient.get(`/api/chatbots/${botId}/conversations`);
-        if (data.success) setConversations(data.conversations);
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setLoadingList(false);
-      }
-    };
-    load();
-  }, [botId]);
-
-  const openConversation = async (id: string) => {
-    setSelected(id);
-    setLoadingThread(true);
-    try {
-      const { data } = await apiClient.get(
-        `/api/chatbots/${botId}/conversations?conversationId=${id}`,
-      );
-      if (data.success) setMessages(data.messages);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setLoadingThread(false);
-    }
-  };
-
-  if (loadingList) {
+  if (isLoading) {
     return (
       <div className="grid gap-4 lg:grid-cols-[20rem_1fr]">
         <div className="space-y-2">
@@ -86,7 +44,7 @@ export const ConversationsView = ({ botId }: { botId: string }) => {
     );
   }
 
-  if (conversations.length === 0) {
+  if (!conversations || conversations.length === 0) {
     return (
       <Card className="border-dashed">
         <CardContent className="py-14 text-center">
@@ -117,7 +75,7 @@ export const ConversationsView = ({ botId }: { botId: string }) => {
             transition={{ type: "spring", bounce: 0.3, duration: 0.4 }}
           >
             <button
-              onClick={() => openConversation(c._id)}
+              onClick={() => setSelected(c._id)}
               className={cn(
                 "w-full cursor-pointer rounded-xl border px-4 py-3 text-left transition",
                 selected === c._id
@@ -143,7 +101,7 @@ export const ConversationsView = ({ botId }: { botId: string }) => {
             <p className="flex h-full items-center justify-center text-sm text-muted-foreground">
               Select a conversation to read the transcript.
             </p>
-          ) : loadingThread ? (
+          ) : threadLoading ? (
             <div className="space-y-3">
               <Skeleton className="h-10 w-2/3 rounded-2xl" />
               <Skeleton className="ml-auto h-10 w-1/2 rounded-2xl" />
@@ -151,7 +109,7 @@ export const ConversationsView = ({ botId }: { botId: string }) => {
             </div>
           ) : (
             <div className="space-y-3">
-              {messages.map((m) => (
+              {messages?.map((m) => (
                 <motion.div
                   key={m._id}
                   initial={{ opacity: 0, y: 12 }}
