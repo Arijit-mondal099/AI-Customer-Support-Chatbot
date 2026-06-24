@@ -41,15 +41,23 @@ export async function POST(request: NextRequest) {
 
     // Resolve the chatbot by its id (preferred) or, for legacy data-owner-id
     // embeds, fall back to that owner's first live (else first) bot.
-    let bot = botId && isValidObjectId(botId) ? await ChatbotModel.findById(botId) : null;
+    let bot = botId && isValidObjectId(botId)
+      ? await ChatbotModel.findOne({ _id: botId, ...(preview ? {} : { status: "live" }) })
+      : null;
     if (!bot && ownerId) {
       bot = await ChatbotModel.findOne({ ownerId, status: "live" }).sort({ createdAt: 1 });
       if (!bot) bot = await ChatbotModel.findOne({ ownerId }).sort({ createdAt: 1 });
     }
 
     if (!bot) {
+      const draftBot = botId && isValidObjectId(botId)
+        ? await ChatbotModel.findOne({ _id: botId, status: "draft" }).select("_id").lean()
+        : null;
+      const msg = draftBot
+        ? "This chatbot is not published yet."
+        : "Chatbot not found.";
       return NextResponse.json(
-        { success: false, message: "Chatbot not found." },
+        { success: false, message: msg },
         { status: 404, headers: corsHeaders },
       );
     }

@@ -476,11 +476,15 @@
       const val = await res.json();
 
       typing.remove();
-      add_message(val.data.text, "model");
+      if (val.success && val.data?.text) {
+        add_message(val.data.text, "model");
+      } else {
+        add_message(val.message || "Sorry, I'm not available right now. Please try again later.", "model");
+      }
     } catch (error) {
       console.log(error);
       typing.remove();
-      add_message("Oops something went wrong!", "model");
+      add_message("Sorry, something went wrong. Please try again.", "model");
     }
   }
 })();

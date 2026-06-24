@@ -22,11 +22,13 @@ export async function GET(request: NextRequest) {
   }
 
   await db_connection();
-  const bot = await ChatbotModel.findById(botId).select("appearance").lean();
+  const bot = await ChatbotModel.findOne({ _id: botId, status: "live" }).select("appearance").lean();
 
   if (!bot) {
+    const draftBot = await ChatbotModel.findOne({ _id: botId, status: "draft" }).select("_id").lean();
+    const msg = draftBot ? "This chatbot is not published yet." : "Chatbot not found.";
     return NextResponse.json(
-      { success: false, message: "Chatbot not found" },
+      { success: false, message: msg },
       { status: 404, headers: corsHeaders },
     );
   }
