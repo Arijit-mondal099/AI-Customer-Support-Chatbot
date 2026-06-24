@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { requireOwner } from "@/lib/auth";
 import { listChatbots } from "@/lib/chatbots";
 import { AppSidebar } from "@/components/dashboard/AppSidebar";
+import { PageTransition } from "@/components/dashboard/PageTransition";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { Toaster } from "@/components/ui/sonner";
@@ -25,7 +26,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <Separator orientation="vertical" className="mr-1 h-4" />
           <span className="text-sm font-medium">Dashboard</span>
         </header>
-        <div className="flex-1 p-4 sm:p-6">{children}</div>
+        <PageTransition>
+          <div className="flex-1 p-4 sm:p-6">{children}</div>
+        </PageTransition>
       </SidebarInset>
       <Toaster position="top-center" />
     </SidebarProvider>
