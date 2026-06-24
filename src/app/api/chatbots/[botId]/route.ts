@@ -22,7 +22,7 @@ interface UpdateBody {
   name?: string;
   status?: "draft" | "live";
   supportEmail?: string;
-  provider?: "gemini" | "openai" | "anthropic" | "groq";
+  provider?: "gemini" | "openai";
   model?: string;
   apiKey?: string;
   businessInfo?: Partial<{ businessName: string; industry: string; description: string }>;

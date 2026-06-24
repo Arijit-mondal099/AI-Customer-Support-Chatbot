@@ -6,7 +6,7 @@ export interface IChatbot {
   status: "draft" | "live";
   supportEmail: string;
   /** AI provider used by this bot. */
-  provider: "gemini" | "openai" | "anthropic" | "groq";
+  provider: "gemini" | "openai";
   /** Specific model/version for the provider (empty = provider default). */
   model: string;
   /** This bot's own API key. */
@@ -47,7 +47,7 @@ const chatbotSchema = new Schema<IChatbot>(
     supportEmail: { type: String, lowercase: true, trim: true, default: "" },
     provider: {
       type: String,
-      enum: ["gemini", "openai", "anthropic", "groq"],
+      enum: ["gemini", "openai"],
       default: "gemini",
     },
     model: { type: String, default: "" },

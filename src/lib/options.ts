@@ -1,16 +1,14 @@
 // Client-safe option lists + provider helpers (no server/LangChain imports),
 // so both the API layer and the dashboard forms can use them.
 
-export type Provider = "gemini" | "openai" | "anthropic" | "groq";
+export type Provider = "gemini" | "openai";
 
 export const normalizeProvider = (value?: string): Provider =>
-  value === "openai" || value === "anthropic" || value === "groq" ? value : "gemini";
+  value === "openai" ? value : "gemini";
 
 export const PROVIDERS: { value: Provider; label: string }[] = [
   { value: "gemini", label: "Google Gemini" },
   { value: "openai", label: "OpenAI" },
-  { value: "anthropic", label: "Anthropic (Claude)" },
-  { value: "groq", label: "Groq" },
 ];
 
 // Only these providers offer an embeddings API (needed for the RAG knowledge base).
@@ -52,16 +50,6 @@ export const MODELS: Record<Provider, { value: string; label: string }[]> = {
     { value: "gpt-4o-mini", label: "GPT-4o mini" },
     { value: "gpt-4o", label: "GPT-4o" },
     { value: "gpt-4-turbo", label: "GPT-4 Turbo" },
-  ],
-  anthropic: [
-    { value: "claude-sonnet-4-6", label: "Claude Sonnet 4.6" },
-    { value: "claude-opus-4-8", label: "Claude Opus 4.8" },
-    { value: "claude-haiku-4-5-20251001", label: "Claude Haiku 4.5" },
-  ],
-  groq: [
-    { value: "llama-3.3-70b-versatile", label: "Llama 3.3 70B" },
-    { value: "llama-3.1-8b-instant", label: "Llama 3.1 8B" },
-    { value: "gemma2-9b-it", label: "Gemma2 9B" },
   ],
 };
 
