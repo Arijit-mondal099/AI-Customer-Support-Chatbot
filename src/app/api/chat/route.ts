@@ -50,8 +50,14 @@ export async function POST(request: NextRequest) {
     }
 
     if (!bot) {
+      const draftBot = botId && isValidObjectId(botId)
+        ? await ChatbotModel.findOne({ _id: botId, status: "draft" }).select("_id").lean()
+        : null;
+      const msg = draftBot
+        ? "This chatbot is not published yet."
+        : "Chatbot not found.";
       return NextResponse.json(
-        { success: false, message: "Chatbot not found." },
+        { success: false, message: msg },
         { status: 404, headers: corsHeaders },
       );
     }
