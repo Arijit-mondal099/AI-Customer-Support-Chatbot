@@ -172,11 +172,12 @@ export const KnowledgeManager = ({ botId }: { botId: string }) => {
             {Array.from({ length: 3 }).map((_, i) => (
               <Card key={i}>
                 <CardContent className="flex items-center gap-3 py-3">
-                  <div className="flex-1 space-y-2">
+                  <div className="min-w-0 flex-1 space-y-2">
                     <Skeleton className="h-4 w-32" />
                     <Skeleton className="h-3 w-20" />
                   </div>
                   <Skeleton className="h-5 w-14 rounded-full" />
+                  <Skeleton className="h-8 w-8" />
                 </CardContent>
               </Card>
             ))}
