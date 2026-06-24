@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion } from "motion/react";
 import { Blocks, Bot, LayoutDashboard, Settings } from "lucide-react";
 import {
   Sidebar,
@@ -59,22 +60,29 @@ export function AppSidebar({ agentCount }: { agentCount: number }) {
           <SidebarGroupLabel>Platform</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {nav.map((item) => {
+              {nav.map((item, i) => {
                 const Icon = item.icon;
                 return (
-                  <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton
-                      render={<Link href={item.href} />}
-                      isActive={item.match(pathname)}
-                      tooltip={item.label}
-                    >
-                      <Icon />
-                      <span>{item.label}</span>
-                    </SidebarMenuButton>
-                    {item.label === "Agents" && agentCount > 0 && (
-                      <SidebarMenuBadge>{agentCount}</SidebarMenuBadge>
-                    )}
-                  </SidebarMenuItem>
+                  <motion.div
+                    key={item.href}
+                    initial={{ opacity: 0, x: -16 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.08, type: "spring", bounce: 0.3, duration: 0.4 }}
+                  >
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                        render={<Link href={item.href} />}
+                        isActive={item.match(pathname)}
+                        tooltip={item.label}
+                      >
+                        <Icon />
+                        <span>{item.label}</span>
+                      </SidebarMenuButton>
+                      {item.label === "Agents" && agentCount > 0 && (
+                        <SidebarMenuBadge>{agentCount}</SidebarMenuBadge>
+                      )}
+                    </SidebarMenuItem>
+                  </motion.div>
                 );
               })}
             </SidebarMenu>
@@ -83,18 +91,24 @@ export function AppSidebar({ agentCount }: { agentCount: number }) {
       </SidebarContent>
 
       <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              render={<Link href="/dashboard/account" />}
-              isActive={pathname === "/dashboard/account"}
-              tooltip="Settings"
-            >
-              <Settings />
-              <span>Settings</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3, duration: 0.4 }}
+        >
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                render={<Link href="/dashboard/account" />}
+                isActive={pathname === "/dashboard/account"}
+                tooltip="Settings"
+              >
+                <Settings />
+                <span>Settings</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </motion.div>
       </SidebarFooter>
     </Sidebar>
   );

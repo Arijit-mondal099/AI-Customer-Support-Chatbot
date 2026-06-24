@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { AlertTriangle, Bot, RotateCcw, Send } from "lucide-react";
-import { apiClient } from "@/lib/axios";
 import type { SerializedBot } from "@/lib/chatbots";
+import { useSendMessage } from "@/hooks/use-chat";
 import { MODELS, PROVIDERS } from "@/lib/options";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -20,9 +21,9 @@ export const AgentPlayground = ({ bot }: { bot: SerializedBot }) => {
   const welcome: Msg = { role: "model", text: bot.appearance.welcomeMessage || "Hello!" };
   const [messages, setMessages] = useState<Msg[]>([welcome]);
   const [input, setInput] = useState("");
-  const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
+  const sendMutation = useSendMessage();
 
   const providerLabel = PROVIDERS.find((p) => p.value === bot.provider)?.label ?? bot.provider;
   const modelLabel = MODELS[bot.provider]?.find((m) => m.value === bot.model)?.label || "Default";
@@ -30,7 +31,7 @@ export const AgentPlayground = ({ bot }: { bot: SerializedBot }) => {
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, sending]);
+  }, [messages, sendMutation.isPending]);
 
   const reset = () => {
     setMessages([welcome]);
@@ -39,31 +40,26 @@ export const AgentPlayground = ({ bot }: { bot: SerializedBot }) => {
 
   const send = async () => {
     const text = input.trim();
-    if (!text || sending) return;
+    if (!text || sendMutation.isPending) return;
     setError("");
     const history = messages.slice(1).map((m) => ({ role: m.role, text: m.text }));
     setMessages((prev) => [...prev, { role: "user", text }]);
     setInput("");
-    setSending(true);
     try {
-      const { data } = await apiClient.post("/api/chat", {
+      const data = await sendMutation.mutateAsync({
         botId: bot._id,
         prompt: text,
         preview: true,
         history,
       });
-      if (data.success) {
-        setMessages((prev) => [...prev, { role: "model", text: data.data.text }]);
+      if (data.success && data.data) {
+        const reply = data.data.text;
+        setMessages((prev) => [...prev, { role: "model", text: reply }]);
       } else {
         setError(data.message || "Something went wrong.");
       }
-    } catch (err: unknown) {
-      const message =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        "Request failed.";
-      setError(message);
-    } finally {
-      setSending(false);
+    } catch {
+      setError("Request failed.");
     }
   };
 
@@ -87,38 +83,63 @@ export const AgentPlayground = ({ bot }: { bot: SerializedBot }) => {
             </p>
           </div>
         </div>
-        <Button variant="ghost" size="sm" onClick={reset} disabled={sending}>
+        <Button variant="ghost" size="sm" onClick={reset} disabled={sendMutation.isPending}>
           <RotateCcw className="h-3.5 w-3.5" /> Reset
         </Button>
       </div>
 
       {/* Messages */}
       <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
-        {messages.map((m, i) => (
-          <div
-            key={i}
-            className={cn(
-              "max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm",
-              m.role === "user"
-                ? "ml-auto rounded-br-sm text-white"
-                : "rounded-bl-sm bg-muted text-foreground",
-            )}
-            style={m.role === "user" ? { background: accent } : undefined}
-          >
-            {m.text}
-          </div>
-        ))}
+        <AnimatePresence initial={false}>
+          {messages.map((m, i) => (
+            <motion.div
+              key={`${i}-${m.text.slice(0, 20)}`}
+              initial={{ opacity: 0, y: 16, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ type: "spring", bounce: 0.3, duration: 0.4 }}
+              className={cn(
+                "max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm",
+                m.role === "user"
+                  ? "ml-auto rounded-br-sm text-white"
+                  : "rounded-bl-sm bg-muted text-foreground",
+              )}
+              style={m.role === "user" ? { background: accent } : undefined}
+            >
+              {m.text}
+            </motion.div>
+          ))}
+        </AnimatePresence>
 
-        {sending && (
-          <div className="flex w-fit items-center gap-1 rounded-2xl rounded-bl-sm bg-muted px-3.5 py-3">
-            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.3s]" />
-            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.15s]" />
-            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" />
-          </div>
+        {sendMutation.isPending && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex w-fit items-center gap-1 rounded-2xl rounded-bl-sm bg-muted px-3.5 py-3"
+          >
+            <motion.span
+              animate={{ y: [0, -4, 0] }}
+              transition={{ repeat: Infinity, duration: 0.6, ease: "easeInOut", delay: 0 }}
+              className="h-1.5 w-1.5 rounded-full bg-muted-foreground"
+            />
+            <motion.span
+              animate={{ y: [0, -4, 0] }}
+              transition={{ repeat: Infinity, duration: 0.6, ease: "easeInOut", delay: 0.15 }}
+              className="h-1.5 w-1.5 rounded-full bg-muted-foreground"
+            />
+            <motion.span
+              animate={{ y: [0, -4, 0] }}
+              transition={{ repeat: Infinity, duration: 0.6, ease: "easeInOut", delay: 0.3 }}
+              className="h-1.5 w-1.5 rounded-full bg-muted-foreground"
+            />
+          </motion.div>
         )}
 
         {error && (
-          <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive"
+          >
             <AlertTriangle size={14} className="mt-0.5 shrink-0" />
             <span>
               {error}
@@ -135,7 +156,7 @@ export const AgentPlayground = ({ bot }: { bot: SerializedBot }) => {
                 </>
               )}
             </span>
-          </div>
+          </motion.div>
         )}
 
         <div ref={endRef} />
@@ -153,11 +174,13 @@ export const AgentPlayground = ({ bot }: { bot: SerializedBot }) => {
             }
           }}
           placeholder="Send a message to test your agent…"
-          disabled={sending}
+          disabled={sendMutation.isPending}
         />
-        <Button onClick={send} disabled={sending || !input.trim()} size="icon">
-          <Send className="h-4 w-4" />
-        </Button>
+        <motion.div whileTap={{ scale: 0.9 }}>
+          <Button onClick={send} disabled={sendMutation.isPending || !input.trim()} size="icon">
+            <Send className="h-4 w-4" />
+          </Button>
+        </motion.div>
       </div>
     </Card>
   );

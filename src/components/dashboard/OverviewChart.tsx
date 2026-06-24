@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "motion/react";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 import {
   type ChartConfig,
@@ -14,8 +15,13 @@ const chartConfig = {
 
 export function OverviewChart({ data }: { data: { label: string; messages: number }[] }) {
   return (
-    <ChartContainer config={chartConfig} className="h-[240px] w-full">
-      <AreaChart data={data} margin={{ left: 4, right: 8, top: 8 }}>
+    <motion.div
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ type: "spring", bounce: 0.3, duration: 0.6 }}
+    >
+      <ChartContainer config={chartConfig} className="h-[240px] w-full">
+        <AreaChart data={data} margin={{ left: 4, right: 8, top: 8 }}>
         <defs>
           <linearGradient id="fillMessages" x1="0" y1="0" x2="0" y2="1">
             <stop offset="5%" stopColor="var(--color-messages)" stopOpacity={0.3} />
@@ -34,5 +40,6 @@ export function OverviewChart({ data }: { data: { label: string; messages: numbe
         />
       </AreaChart>
     </ChartContainer>
+    </motion.div>
   );
 }
