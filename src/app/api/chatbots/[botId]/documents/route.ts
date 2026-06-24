@@ -76,7 +76,7 @@ export async function POST(request: NextRequest, { params }: Params) {
   if (!apiKey) return bad("Add an API key in this bot's Model & key tab first.");
   if (!supportsEmbeddings(provider)) {
     return bad(
-      "The knowledge base needs a Gemini or OpenAI agent — Claude and Groq don't provide embeddings.",
+      "Only Gemini and OpenAI support the knowledge base.",
     );
   }
 

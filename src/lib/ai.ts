@@ -1,8 +1,6 @@
-import { ChatAnthropic } from "@langchain/anthropic";
 import type { Embeddings } from "@langchain/core/embeddings";
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
-import { ChatGroq } from "@langchain/groq";
 import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
 import { defaultModel, type Provider } from "./options";
 
@@ -16,19 +14,13 @@ export const EMBED_DIMENSIONS = 768;
 export const getChatModel = (provider: Provider, apiKey: string, model?: string): BaseChatModel => {
   const resolved = model?.trim() || defaultModel(provider);
   const temperature = 0.3;
-  switch (provider) {
-    case "openai":
-      return new ChatOpenAI({ apiKey, model: resolved, temperature });
-    case "anthropic":
-      return new ChatAnthropic({ apiKey, model: resolved, temperature });
-    case "groq":
-      return new ChatGroq({ apiKey, model: resolved, temperature });
-    default:
-      return new ChatGoogleGenerativeAI({ apiKey, model: resolved, temperature });
+  if (provider === "openai") {
+    return new ChatOpenAI({ apiKey, model: resolved, temperature });
   }
+  return new ChatGoogleGenerativeAI({ apiKey, model: resolved, temperature });
 };
 
-// Only Gemini and OpenAI provide embeddings; Anthropic/Groq do not.
+// Only Gemini and OpenAI provide embeddings.
 export const getEmbeddings = (provider: Provider, apiKey: string): Embeddings => {
   if (provider === "openai") {
     return new OpenAIEmbeddings({
