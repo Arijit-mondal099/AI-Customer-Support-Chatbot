@@ -3,19 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
-import {
-  BookOpen,
-  CheckCircle2,
-  Code2,
-  ChevronRight,
-  Globe,
-  Loader2,
-  MessageCircle,
-  Save,
-  Slack,
-  Webhook,
-  Zap,
-} from "lucide-react";
+import { BookOpen, CheckCircle2, ChevronRight, Globe, Loader2, Save } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,46 +20,16 @@ import { Label } from "@/components/ui/label";
 
 const plugins = [
   {
-    name: "Website Widget",
-    desc: "Embed the chat widget on any site with a single script tag.",
-    icon: Globe,
-    status: "active" as const,
-  },
-  {
-    name: "Slack",
-    desc: "Forward conversations and alerts to a Slack channel.",
-    icon: Slack,
-    status: "soon" as const,
-  },
-  {
-    name: "WhatsApp",
-    desc: "Answer customers on WhatsApp Business.",
-    icon: MessageCircle,
-    status: "soon" as const,
-  },
-  {
     name: "Notion",
     desc: "Connect Notion databases and pages as knowledge sources.",
     icon: BookOpen,
     status: "dynamic" as const,
   },
   {
-    name: "Zapier",
-    desc: "Connect thousands of apps with no-code automations.",
-    icon: Zap,
-    status: "soon" as const,
-  },
-  {
-    name: "Webhooks",
-    desc: "Stream conversation events to your own endpoints.",
-    icon: Webhook,
-    status: "soon" as const,
-  },
-  {
-    name: "REST API",
-    desc: "Build custom integrations on the SupportAI API.",
-    icon: Code2,
-    status: "soon" as const,
+    name: "Website Widget",
+    desc: "Embed the chat widget on any site with a single script tag.",
+    icon: Globe,
+    status: "active" as const,
   },
 ];
 
@@ -138,7 +96,7 @@ export default function PluginsPage() {
         {plugins.map((p) => {
           const Icon = p.icon;
           const isNotion = p.name === "Notion";
-          const resolvedStatus = isNotion ? (notionConnected ? "active" : "configure") : p.status;
+          const resolvedStatus = isNotion ? (notionConnected ? "active" : "configure") : "active";
 
           return (
             <motion.div
@@ -162,10 +120,8 @@ export default function PluginsPage() {
                       <CheckCircle2 size={11} className="mr-1" />
                       Connected
                     </Badge>
-                  ) : resolvedStatus === "configure" ? (
-                    <Badge variant="outline">Configure</Badge>
                   ) : (
-                    <Badge variant="secondary">Coming soon</Badge>
+                    <Badge variant="outline">Configure</Badge>
                   )}
                 </CardHeader>
                 <CardContent className="mt-4 space-y-4">
@@ -185,7 +141,7 @@ export default function PluginsPage() {
                     >
                       Configure
                     </Button>
-                  ) : resolvedStatus === "active" ? (
+                  ) : (
                     <Button
                       render={<Link href="/dashboard/agents" />}
                       nativeButton={false}
@@ -193,10 +149,6 @@ export default function PluginsPage() {
                       size="sm"
                     >
                       Configure
-                    </Button>
-                  ) : (
-                    <Button variant="outline" size="sm" disabled>
-                      Connect
                     </Button>
                   )}
                 </CardContent>
