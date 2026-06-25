@@ -100,3 +100,22 @@ export const extractTextFromFile = async (file: File): Promise<string> => {
 
   throw new UnsupportedFileError(ext);
 };
+
+export const extractTextFromNotion = async (
+  resourceId: string,
+  resourceType: "page" | "database",
+  notionToken: string,
+): Promise<string> => {
+  const { NotionAPILoader } = await import("@langchain/community/document_loaders/web/notionapi");
+  const loader = new NotionAPILoader({
+    clientOptions: { auth: notionToken },
+    id: resourceId,
+    type: resourceType,
+    propertiesAsHeader: resourceType === "database",
+  });
+  const docs = await loader.load();
+  return docs
+    .map((d) => d.pageContent)
+    .filter(Boolean)
+    .join("\n\n");
+};
