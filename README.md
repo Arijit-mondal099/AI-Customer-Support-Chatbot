@@ -36,17 +36,17 @@ Built for businesses, developers, and SaaS products that want intelligent, on-br
 
 ## Features
 
-| Icon | Feature                  | Description                                                                   |
-| ---- | ------------------------ | ----------------------------------------------------------------------------- |
-| 🤖   | **AI Chat**              | Natural, context-aware responses powered by Gemini or GPT                     |
-| 📚   | **RAG Knowledge Base**   | Upload PDFs, DOCX, TXT, MD, CSV — or paste text, scrape a URL, connect Notion |
-| 🔌   | **Notion Plugin**        | Index Notion pages and databases as knowledge sources                         |
-| 🎭   | **Custom Persona**       | Configure bot name, communication tone, and personality per agent             |
-| 🌐   | **Embed Widget**         | Drop-in `<script>` tag — 5KB vanilla JS, zero dependencies, any site          |
-| ⚡   | **Multi-provider**       | Per-agent choice of Google Gemini or OpenAI, with own model and API key       |
-| 💬   | **Conversation History** | Multi-turn chats persisted per visitor session                                |
-| 📊   | **Analytics Dashboard**  | Account-level stats, 14-day message chart, top agents, per-bot analytics      |
-| 🔐   | **Scalekit B2B Auth**    | Enterprise OAuth with automatic tenant isolation                              |
+| Feature                  | Description                                                                   |
+| ------------------------ | ----------------------------------------------------------------------------- |
+| **AI Chat**              | Natural, context-aware responses powered by Gemini or GPT                     |
+| **RAG Knowledge Base**   | Upload PDFs, DOCX, TXT, MD, CSV — or paste text, scrape a URL, connect Notion |
+| **Notion Plugin**        | Index Notion pages and databases as knowledge sources                         |
+| **Custom Persona**       | Configure bot name, communication tone, and personality per agent             |
+| **Embed Widget**         | Drop-in `<script>` tag — 5KB vanilla JS, zero dependencies, any site          |
+| **Multi-provider**       | Per-agent choice of Google Gemini or OpenAI, with own model and API key       |
+| **Conversation History** | Multi-turn chats persisted per visitor session                                |
+| **Analytics Dashboard**  | Account-level stats, 14-day message chart, top agents, per-bot analytics      |
+| **Scalekit B2B Auth**    | Enterprise OAuth with automatic tenant isolation                              |
 
 ---
 
