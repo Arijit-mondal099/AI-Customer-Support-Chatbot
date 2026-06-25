@@ -103,7 +103,7 @@ export const extractTextFromFile = async (file: File): Promise<string> => {
 
 export const parseNotionId = (input: string): string => {
   const clean = input.trim();
-  if (clean.includes("notion.so")) {
+  if (clean.includes("notion.so") || clean.includes("notion.com")) {
     const match = clean.match(/([0-9a-fA-F]{32})/);
     if (match) return match[1].toLowerCase();
     throw new Error("Could not extract a valid Notion ID from the provided URL or ID.");
