@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { motion } from "motion/react";
-import { FileText, Link2, Loader2, Plus, Trash2, Upload } from "lucide-react";
+import { BookOpen, FileText, Link2, Loader2, Plus, Trash2, Upload } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,12 +13,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { useDocuments, useAddDocument, useDeleteDocument } from "@/hooks/use-documents";
 
-type SourceTab = "text" | "url" | "file";
+type SourceTab = "text" | "url" | "file" | "notion";
 
 const TABS: { id: SourceTab; icon: React.ReactNode; label: string }[] = [
   { id: "text", icon: <FileText size={13} />, label: "Text" },
   { id: "url", icon: <Link2 size={13} />, label: "URL" },
   { id: "file", icon: <Upload size={13} />, label: "File" },
+  { id: "notion", icon: <BookOpen size={13} />, label: "Notion" },
 ];
 
 const statusStyles: Record<string, string> = {
@@ -38,10 +39,31 @@ export const KnowledgeManager = ({ botId }: { botId: string }) => {
   const [url, setUrl] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [fileKey, setFileKey] = useState(0);
+  const [resourceId, setResourceId] = useState("");
+  const [resourceType, setResourceType] = useState<"page" | "database">("page");
+  const [notionConnected, setNotionConnected] = useState(false);
+  const [notionLoading, setNotionLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/account")
+      .then((r) => r.json())
+      .then((data) => setNotionConnected(data.hasNotionIntegration ?? false))
+      .catch(() => {})
+      .finally(() => setNotionLoading(false));
+  }, []);
 
   const add = async () => {
     try {
-      let payload: FormData | { sourceType: "url"; title: string; url: string } | { sourceType: "text"; title: string; content: string };
+      let payload:
+        | FormData
+        | { sourceType: "url"; title: string; url: string }
+        | { sourceType: "text"; title: string; content: string }
+        | {
+            sourceType: "notion";
+            title: string;
+            resourceId: string;
+            resourceType: "page" | "database";
+          };
       if (tab === "file") {
         if (!file) return;
         const form = new FormData();
@@ -50,6 +72,8 @@ export const KnowledgeManager = ({ botId }: { botId: string }) => {
         payload = form;
       } else if (tab === "url") {
         payload = { sourceType: "url", title, url };
+      } else if (tab === "notion") {
+        payload = { sourceType: "notion", title, resourceId, resourceType };
       } else {
         payload = { sourceType: "text", title, content };
       }
@@ -64,6 +88,8 @@ export const KnowledgeManager = ({ botId }: { botId: string }) => {
       setUrl("");
       setFile(null);
       setFileKey((k) => k + 1);
+      setResourceId("");
+      setResourceType("page");
       toast.success("Added to knowledge base");
     } catch {
       toast.error("Could not add document.");
@@ -80,7 +106,13 @@ export const KnowledgeManager = ({ botId }: { botId: string }) => {
   };
 
   const canSubmit =
-    tab === "file" ? !!file : tab === "url" ? url.trim().length > 0 : content.trim().length > 0;
+    tab === "file"
+      ? !!file
+      : tab === "url"
+        ? url.trim().length > 0
+        : tab === "notion"
+          ? notionConnected && resourceId.trim().length > 0
+          : content.trim().length > 0;
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
@@ -152,7 +184,79 @@ export const KnowledgeManager = ({ botId }: { botId: string }) => {
             </label>
           )}
 
-          <Button onClick={add} disabled={addMutation.isPending || !canSubmit}>
+          {tab === "notion" && (
+            <div className="space-y-3">
+              {notionLoading ? null : !notionConnected ? (
+                <p className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-[11px] text-amber-800">
+                  Notion is not connected. Go to{" "}
+                  <a href="/dashboard/plugins" className="underline">
+                    Plugins
+                  </a>{" "}
+                  to add an integration token.
+                </p>
+              ) : null}
+              <Input
+                value={resourceId}
+                onChange={(e) => setResourceId(e.target.value)}
+                placeholder="Notion page or database URL or ID"
+                disabled={!notionConnected}
+              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setResourceType("page")}
+                  disabled={!notionConnected}
+                  className={cn(
+                    "flex-1 cursor-pointer rounded-lg border px-3 py-2 text-xs font-semibold transition",
+                    resourceType === "page"
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border text-muted-foreground hover:text-foreground",
+                    !notionConnected && "cursor-not-allowed opacity-50",
+                  )}
+                >
+                  Page
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setResourceType("database")}
+                  disabled={!notionConnected}
+                  className={cn(
+                    "flex-1 cursor-pointer rounded-lg border px-3 py-2 text-xs font-semibold transition",
+                    resourceType === "database"
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border text-muted-foreground hover:text-foreground",
+                    !notionConnected && "cursor-not-allowed opacity-50",
+                  )}
+                >
+                  Database
+                </button>
+              </div>
+              <details className="group cursor-pointer">
+                <summary className="text-[11px] font-medium text-muted-foreground underline decoration-dotted underline-offset-2">
+                  How to find the ID
+                </summary>
+                <div className="mt-2 space-y-1.5 text-[11px] text-muted-foreground">
+                  <p>
+                    <strong>Page:</strong> Copy the URL from your browser — the ID is the last
+                    32-character hex segment. Paste the full URL above.
+                  </p>
+                  <p>
+                    <strong>Database:</strong> Open the database view in Notion and copy the URL.
+                    Same format — the ID is in the URL path.
+                  </p>
+                  <p>
+                    <strong>Integration access:</strong> Make sure your integration is invited to
+                    the page or database (share → invite → your integration name).
+                  </p>
+                </div>
+              </details>
+            </div>
+          )}
+
+          <Button
+            onClick={add}
+            disabled={addMutation.isPending || !canSubmit || (tab === "notion" && notionLoading)}
+          >
             {addMutation.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
