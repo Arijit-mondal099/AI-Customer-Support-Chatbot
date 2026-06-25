@@ -16,14 +16,16 @@ No test or typecheck scripts exist.
 
 ## Git hooks (husky)
 
-| Hook         | What it runs                                 |
-| ------------ | -------------------------------------------- |
-| `pre-commit` | `npm run lint` + `npm run format`            |
-| `commit-msg` | `commitlint` – enforces conventional commits |
+| Hook         | What it runs                                                               |
+| ------------ | -------------------------------------------------------------------------- |
+| `pre-commit` | `npm run lint` + `npm run format` (runs on **all** files, not just staged) |
+| `commit-msg` | `npx commitlint --edit` — enforces conventional commits                    |
+
+**Gotcha:** pre-commit runs `format` (check), not `format:fix`. If code isn't already formatted, the hook fails. Run `npm run format:fix` before committing.
 
 ## Environment
 
-Copy `.env.local` template (all required unless noted):
+Copy `.env.example` → `.env.local`.
 
 | Var                        | Notes                            |
 | -------------------------- | -------------------------------- |
@@ -35,12 +37,14 @@ Copy `.env.local` template (all required unless noted):
 | `PINECONE_API_KEY`         | _(optional)_ Gates RAG feature   |
 | `PINECONE_INDEX`           | _(optional)_ Pinecone index name |
 
-Env vars read in `src/lib/env.ts` – required ones crash at module import if missing.
+**Gotcha:** `src/lib/env.ts` validates with Zod but **does not crash on failure** — it logs an error and falls back to empty strings. Required vars (`SCALEKIT_*`, `MONGODB_URI`) will cause failures later, not at startup.
+
+`.npmrc` sets `legacy-peer-deps=true` — use `npm install`, not other package managers.
 
 ## Architecture
 
 - **Next.js 16 App Router** with TypeScript, `@/` alias → `./src/*`
-- **Tailwind CSS v4** via `@tailwindcss/postcss`
+- **Tailwind CSS v4** via `@tailwindcss/postcss`, **shadcn/ui** primitives (`components.json` confirms base-nova style)
 - **MongoDB / Mongoose 9** – singleton cached on `globalThis.mongoose` (`src/lib/db.ts`)
 - **Google Gemini** (`@langchain/google-genai`) + **OpenAI** (`@langchain/openai`) – per-bot provider/key/model stored in MongoDB
 - **Scalekit** B2B OAuth – token stored in `httpOnly` cookie `access_token` (24h)
@@ -51,65 +55,25 @@ Env vars read in `src/lib/env.ts` – required ones crash at module import if mi
 ## Key patterns
 
 - **Server / client boundary**: server components fetch data (session, DB) and pass as props to client components. Client components (`"use client"`) handle all interactivity.
-- **Route protection**: `src/proxy.ts` is a Next.js middleware **misnamed** – it exports `config.matcher` and the middleware signature but sits at `src/proxy.ts` instead of `src/middleware.ts`, so it is **not auto-invoked**. Dashboard pages call `requireOwner()` inline instead.
+- **Route protection**: `src/proxy.ts` is a Next.js middleware **misnamed and entirely unused** — it exports `config.matcher` and the middleware signature but sits at `src/proxy.ts` instead of `src/middleware.ts`, so it is **never invoked**. Dashboard pages call `requireOwner()` inline instead.
 - **Auth flow**: `/api/auth/login` → Scalekit → `/api/auth/verify?code=...` → set cookie → redirect to `/dashboard`.
 - **API response shape**: consistently `{ success: boolean, message?: string, data?: any, error?: any }`.
-- **Per-bot API keys**: each agent carries its own provider, model, and API key. No account-level fallback.
+- **Per-bot API keys**: each agent carries its own provider, model, and API key (`apiKeyOverride` in the model — note the field name) — no account-level fallback.
 - **Knowledge base**: two layers — (1) system instruction built from business/persona config via `buildKnowledge()`, (2) optional RAG document retrieval via Pinecone (gated by `PINECONE_API_KEY`).
-- **Chat persistence**: preview/playground chats skip DB writes (`preview: true`); embedded chats with `sessionId` persist to Conversation + Message models.
 - **RAG is optional**: `isRagConfigured()` checks for `PINECONE_API_KEY` + `PINECONE_INDEX`. Without them, only the system instruction is used.
+- **Chat persistence**: preview/playground chats skip DB writes (`preview: true`); embedded chats with `sessionId` persist to Conversation + Message models. History limit is 20 messages (`HISTORY_LIMIT = 20`).
 - **CORS**: `/api/chat` and `/api/chat/config` return `Access-Control-Allow-Origin: *` for the embed widget.
-- **No global state library** – form state is local `useState`. TanStack React Query for server state.
+- **No global state library** — form state is local `useState`. TanStack React Query for server state.
 - **Embed widget**: self-contained vanilla JS at `public/chat_bot.js` (no build step). Reads `data-bot-id` attribute, fetches `/api/chat/config` for theming, posts to `/api/chat`.
+- **Zod validation** lives in `src/lib/validations.ts` — covers chat request, chatbot create/update, and document creation (supports `url`, `text`, and `notion` source types).
 
-## Routes
+## Non-obvious details
 
-| Method   | Path                                      | Auth     | Description                                                                              |
-| -------- | ----------------------------------------- | -------- | ---------------------------------------------------------------------------------------- |
-| `GET`    | `/api/auth/login`                         | —        | Redirect to Scalekit OAuth                                                               |
-| `GET`    | `/api/auth/verify?code=`                  | —        | OAuth callback → set cookie → redirect `/dashboard`                                      |
-| `GET`    | `/api/auth/logout`                        | —        | Delete cookie → redirect `/`                                                             |
-| `POST`   | `/api/chat`                               | CORS `*` | Send prompt to AI. Supports multi-turn via `sessionId`, preview mode via `preview: true` |
-| `GET`    | `/api/chat/config?botId=`                 | CORS `*` | Bot appearance (accent, avatar, displayName, welcomeMessage)                             |
-| `GET`    | `/api/chatbots`                           | session  | List all chatbots for owner                                                              |
-| `POST`   | `/api/chatbots`                           | session  | Create chatbot                                                                           |
-| `GET`    | `/api/chatbots/[botId]`                   | session  | Get single chatbot                                                                       |
-| `PUT`    | `/api/chatbots/[botId]`                   | session  | Update chatbot (regenerates knowledge string)                                            |
-| `DELETE` | `/api/chatbots/[botId]`                   | session  | Delete chatbot + cascade (vectors, conversations, messages, docs, chunks)                |
-| `GET`    | `/api/chatbots/[botId]/documents`         | session  | List knowledge documents                                                                 |
-| `POST`   | `/api/chatbots/[botId]/documents`         | session  | Ingest document (file/URL/text)                                                          |
-| `DELETE` | `/api/chatbots/[botId]/documents/[docId]` | session  | Delete document + vectors                                                                |
-| `GET`    | `/api/chatbots/[botId]/analytics`         | session  | Per-bot stats (conversations, messages, lastActive)                                      |
-| `GET`    | `/api/chatbots/[botId]/conversations`     | session  | List conversations or get transcript (`?conversationId=`)                                |
-
-## Dashboard pages
-
-All under `src/app/(user)/dashboard/`. Each page calls `requireOwner()` – redirects to login if null.
-
-| Path                                    | Description                                                                 |
-| --------------------------------------- | --------------------------------------------------------------------------- |
-| `/dashboard`                            | Account analytics overview (stats, 14-day chart, top agents, recent convos) |
-| `/dashboard/agents`                     | Agent grid with search, status badges, manage/delete                        |
-| `/dashboard/agents/new`                 | 4-step creation wizard (Basics → Persona → Model → Review)                  |
-| `/dashboard/bots/[botId]`               | Per-bot stats                                                               |
-| `/dashboard/bots/[botId]/playground`    | Live chat test (no persistence)                                             |
-| `/dashboard/bots/[botId]/config`        | Full config form + delete danger zone                                       |
-| `/dashboard/bots/[botId]/knowledge`     | Document management (add/remove text, URL, file)                            |
-| `/dashboard/bots/[botId]/appearance`    | Color, avatar, name, welcome message + live preview                         |
-| `/dashboard/bots/[botId]/embed`         | Copy-paste `<script>` snippet                                               |
-| `/dashboard/bots/[botId]/conversations` | Two-panel conversation viewer                                               |
-| `/dashboard/account`                    | Profile, API key info, logout                                               |
-| `/dashboard/plugins`                    | Plugin marketplace cards                                                    |
-
-## Models (Mongoose)
-
-| Model          | Collection      | Key fields                                                                                                                                 |
-| -------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `Chatbot`      | `chatbots`      | `ownerId`, `name`, `status` ("draft"\|"live"), `provider`, `model`, `apiKeyOverride`, `businessInfo`, `botInfo`, `appearance`, `knowledge` |
-| `Conversation` | `conversations` | `botId`, `ownerId`, `sessionId` (unique per bot), `messageCount`, `lastMessageAt`                                                          |
-| `Message`      | `messages`      | `conversationId`, `botId`, `role` ("user"\|"model"), `text`                                                                                |
-| `Document`     | `documents`     | `botId`, `ownerId`, `title`, `sourceType` ("file"\|"url"\|"text"), `status` ("processing"\|"ready"\|"error"), `chunkCount`                 |
-| `Chunk`        | `chunks`        | `botId`, `documentId`, `pineconeId`, `text`                                                                                                |
+- `next.config.ts` excludes `pdf-parse`, `pdfjs-dist`, and `mammoth` from server bundle via `serverExternalPackages` — they ship their own workers.
+- `.editorconfig` says `indent_size = 4` but `.prettierrc` enforces `tabWidth: 2`. Prettier wins in practice; be aware of the mismatch in editor defaults.
+- Document ingestion supports 4 source types: `file` (PDF/DOCX/TXT/MD/CSV), `url`, `text`, and `notion` (page or database via Notion SDK).
+- One-off migration script at `scripts/migrate-business-to-chatbot.mjs` — run with `node --env-file=.env.local scripts/migrate-business-to-chatbot.mjs`. Safe to re-run.
+- CLAUDE.md in the root contains generic behavioral guidelines (bias toward caution, surgical edits, simplicity-first). Not repo-specific but actively referenced.
 
 ## Providers & models
 
@@ -118,11 +82,11 @@ All under `src/app/(user)/dashboard/`. Each page calls `requireOwner()` – redi
 | `gemini` | `gemini-2.0-flash`, `gemini-1.5-flash`, `gemini-1.5-pro` | `text-embedding-004` (768d)     |
 | `openai` | `gpt-4o-mini`, `gpt-4o`, `gpt-4-turbo`                   | `text-embedding-3-small` (768d) |
 
-Default model for each provider is the first in its list (`gemini-2.0-flash`, `gpt-4o-mini`).
+Default model for each provider is the first in its list (`gemini-2.0-flash`, `gpt-4o-mini`). Defined in `src/lib/options.ts`.
 
 ## Style
 
-- Tailwind's zinc palette overridden with warm tones in `globals.css` (`@theme` block)
+- Tailwind's zinc/slate/gray palettes overridden with warm tones in `globals.css` (`@theme` block)
 - `.bg-pinstripe` for landing page diagonal hatch background
 - `motion/react` for animations, `lucide-react` icons
 - `font-title` for badges/labels, `font-heading` for h1/h2, `font-sans` for body
