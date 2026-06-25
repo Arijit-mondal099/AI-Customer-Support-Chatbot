@@ -18,11 +18,15 @@
 
 Build custom AI support agents that know your business. Configure personality, tone, and provider per agent. Add your knowledge — files, URLs, text, or Notion — and embed a zero-dependency chat widget on any site with one `<script>` tag. No third-party processors, no hidden costs, no data leaving your stack.
 
-<img alt="SupportAI Dashboard" src="public/dashboard.png" width="700">
-
 <div align="center">
 
 [🚀 Get Started](#getting-started) · [🌐 Live Demo](https://supportai-seven.vercel.app)
+
+</div>
+
+<div align="center">
+
+<img alt="SupportAI Dashboard" src="public/dashboard.png" width="700">
 
 </div>
 
