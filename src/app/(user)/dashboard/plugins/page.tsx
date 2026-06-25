@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { BookOpen, CheckCircle2, ChevronRight, Globe, Loader2, Save } from "lucide-react";
+import { BookOpen, CheckCircle2, ChevronRight, Globe, Link2Off, Loader2, Save } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -48,13 +48,13 @@ export default function PluginsPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const saveToken = async () => {
+  const saveToken = async (token: string) => {
     setSaving(true);
     try {
       const res = await fetch("/api/account", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ notionIntegrationToken: tokenValue }),
+        body: JSON.stringify({ notionIntegrationToken: token }),
         credentials: "include",
       });
       const data = await res.json();
@@ -68,6 +68,8 @@ export default function PluginsPage() {
       setSaving(false);
     }
   };
+
+  const disconnect = () => saveToken("");
 
   return (
     <div className="space-y-6">
@@ -130,17 +132,31 @@ export default function PluginsPage() {
                     <CardDescription className="mt-1">{p.desc}</CardDescription>
                   </div>
                   {isNotion ? (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setTokenValue("");
-                        setDialogOpen(true);
-                      }}
-                      disabled={loading}
-                    >
-                      Configure
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setTokenValue("");
+                          setDialogOpen(true);
+                        }}
+                        disabled={loading}
+                      >
+                        {notionConnected ? "Update key" : "Connect"}
+                      </Button>
+                      {notionConnected && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={disconnect}
+                          disabled={saving}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Link2Off size={13} className="mr-1" />
+                          Disconnect
+                        </Button>
+                      )}
+                    </div>
                   ) : (
                     <Button
                       render={<Link href="/dashboard/agents" />}
@@ -177,7 +193,7 @@ export default function PluginsPage() {
             />
           </div>
           <DialogFooter>
-            <Button onClick={saveToken} disabled={saving || !tokenValue.trim()}>
+            <Button onClick={() => saveToken(tokenValue)} disabled={saving || !tokenValue.trim()}>
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               {saving ? "Saving…" : "Save"}
             </Button>
