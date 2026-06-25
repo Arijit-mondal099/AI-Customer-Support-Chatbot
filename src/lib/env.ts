@@ -10,7 +10,7 @@ const envSchema = z.object({
   PINECONE_INDEX: z.string().optional(),
 });
 
-export const ENV = envSchema.parse({
+const raw = {
   API_URI: process.env.NEXT_PUBLIC_API_URI,
   SCALEKIT_ENVIRONMENT_URL: process.env.SCALEKIT_ENVIRONMENT_URL,
   SCALEKIT_CLIENT_ID: process.env.SCALEKIT_CLIENT_ID,
@@ -18,4 +18,21 @@ export const ENV = envSchema.parse({
   MONGODB_URI: process.env.MONGODB_URI,
   PINECONE_API_KEY: process.env.PINECONE_API_KEY,
   PINECONE_INDEX: process.env.PINECONE_INDEX,
-});
+};
+
+const parsed = envSchema.safeParse(raw);
+if (!parsed.success) {
+  console.error("Environment variable validation failed:", parsed.error.issues);
+}
+
+export const ENV = parsed.success
+  ? parsed.data
+  : {
+      API_URI: raw.API_URI ?? "",
+      SCALEKIT_ENVIRONMENT_URL: raw.SCALEKIT_ENVIRONMENT_URL ?? "",
+      SCALEKIT_CLIENT_ID: raw.SCALEKIT_CLIENT_ID ?? "",
+      SCALEKIT_CLIENT_SECRET: raw.SCALEKIT_CLIENT_SECRET ?? "",
+      MONGODB_URI: raw.MONGODB_URI ?? "",
+      PINECONE_API_KEY: raw.PINECONE_API_KEY,
+      PINECONE_INDEX: raw.PINECONE_INDEX,
+    };

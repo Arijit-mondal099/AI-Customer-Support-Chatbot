@@ -8,6 +8,9 @@ if (!cache) {
 }
 
 export const db_connection = async () => {
+  if (!ENV.MONGODB_URI) {
+    throw new Error("MONGODB_URI is not defined in environment variables");
+  }
   // if there is alredy conn present then returen that conn
   if (cache.conn) return cache.conn;
   // if there isn't present any conn promise then create new
