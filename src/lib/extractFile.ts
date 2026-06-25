@@ -101,6 +101,18 @@ export const extractTextFromFile = async (file: File): Promise<string> => {
   throw new UnsupportedFileError(ext);
 };
 
+export const parseNotionId = (input: string): string => {
+  const clean = input.trim();
+  if (clean.includes("notion.so")) {
+    const match = clean.match(/([0-9a-fA-F]{32})/);
+    if (match) return match[1].toLowerCase();
+    throw new Error("Could not extract a valid Notion ID from the provided URL or ID.");
+  }
+  const stripped = clean.replace(/-/g, "");
+  if (/^[0-9a-fA-F]{32}$/.test(stripped)) return stripped.toLowerCase();
+  throw new Error("Could not extract a valid Notion ID from the provided URL or ID.");
+};
+
 export const extractTextFromNotion = async (
   resourceId: string,
   resourceType: "page" | "database",
@@ -109,7 +121,7 @@ export const extractTextFromNotion = async (
   const { NotionAPILoader } = await import("@langchain/community/document_loaders/web/notionapi");
   const loader = new NotionAPILoader({
     clientOptions: { auth: notionToken },
-    id: resourceId,
+    id: parseNotionId(resourceId),
     type: resourceType,
     propertiesAsHeader: resourceType === "database",
   });

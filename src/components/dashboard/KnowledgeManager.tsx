@@ -198,7 +198,7 @@ export const KnowledgeManager = ({ botId }: { botId: string }) => {
               <Input
                 value={resourceId}
                 onChange={(e) => setResourceId(e.target.value)}
-                placeholder="Notion page or database ID"
+                placeholder="Notion page or database URL or ID"
                 disabled={!notionConnected}
               />
               <div className="flex gap-2">
