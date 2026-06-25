@@ -1,5 +1,5 @@
 import { ENV } from "@/lib/env";
-import { scalekit } from "@/lib/scalekit";
+import { getScalekit } from "@/lib/scalekit";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const session = await scalekit.authenticateWithCode(code, `${ENV.API_URI}/api/auth/verify`);
+    const session = await getScalekit().authenticateWithCode(code, `${ENV.API_URI}/api/auth/verify`);
 
     const cookieStore = await cookies();
 

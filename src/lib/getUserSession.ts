@@ -1,4 +1,4 @@
-import { scalekit } from "@/lib/scalekit";
+import { getScalekit } from "@/lib/scalekit";
 import { cookies } from "next/headers";
 
 export const getUserSession = async () => {
@@ -8,6 +8,7 @@ export const getUserSession = async () => {
 
     if (!token) return null;
 
+    const scalekit = getScalekit();
     const res = (await scalekit.validateToken(token)) as unknown as { sub: string };
     const user = await scalekit.user.getUser(res.sub);
 
