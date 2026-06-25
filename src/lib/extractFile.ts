@@ -122,7 +122,6 @@ export const extractTextFromNotion = async (
   const loader = new NotionAPILoader({
     clientOptions: { auth: notionToken },
     id: parseNotionId(resourceId),
-    type: resourceType,
     propertiesAsHeader: resourceType === "database",
   });
   const docs = await loader.load();
