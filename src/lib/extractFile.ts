@@ -2,19 +2,16 @@ export const SUPPORTED_EXTENSIONS = ["pdf", "docx", "txt", "md", "csv"];
 
 export class UnsupportedFileError extends Error {}
 
-async function ensureGlobalPolyfills(): Promise<void> {
-  if (typeof globalThis.DOMMatrix === "undefined") {
-    const { DOMMatrix, ImageData, Path2D } = await import("@napi-rs/canvas");
-    Object.assign(globalThis, { DOMMatrix, ImageData, Path2D });
-  }
-}
-
 export const extractTextFromFile = async (file: File): Promise<string> => {
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
   const arrayBuffer = await file.arrayBuffer();
 
   if (ext === "pdf") {
-    await ensureGlobalPolyfills();
+    // Disable pdfjs worker for Vercel serverless — worker files are not
+    // bundled in the serverless function, so they can't be resolved at runtime.
+    const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf.mjs");
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "";
+
     const { PDFParse } = await import("pdf-parse");
     const parser = new PDFParse({ data: new Uint8Array(arrayBuffer) });
     const result = await parser.getText();
